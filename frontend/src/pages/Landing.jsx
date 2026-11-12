@@ -318,18 +318,17 @@ export default function Landing() {
             <div style={{ marginBottom: '32px' }}>
               <h2
                 style={{
-                  fontFamily: 'var(--font-sans), sans-serif',
                   margin: '0 0 10px',
-                  fontSize: 'clamp(28px, 3.2vw, 38px)',
-                  fontWeight: 600,
+                  fontSize: 'clamp(28px, 3.4vw, 40px)',
+                  fontWeight: 400,
                   letterSpacing: '-0.025em',
                   color: '#1C1B18',
                 }}
               >
                 Protect your server, your users, and your bill.
               </h2>
-              <p style={{ margin: 0, fontSize: '15.5px', color: '#5F5C55', maxWidth: '540px', lineHeight: 1.6 }}>
-                Hover or click any panel to inspect live edge enforcement and zero-code rate governance.
+              <p style={{ margin: 0, fontSize: '15.5px', color: '#4A4843', maxWidth: '540px', lineHeight: 1.6 }}>
+                Four layers of edge defense to keep your origin fast, your database shielded, and your billing predictable.
               </p>
             </div>
 
@@ -341,20 +340,19 @@ export default function Landing() {
       {/* Band 4: Linear-Style Hairline Expandable Index (Warm Stone + Scroll Depth Rise) */}
       <section id="algorithms" style={{ maxWidth: '1080px', margin: '0 auto', padding: '92px 24px', scrollMarginTop: '68px' }}>
         <ScrollRevealStage mode="rise">
-          <div style={{ marginBottom: '18px' }}>
+          <div style={{ marginBottom: '24px' }}>
             <h2
               style={{
-                fontFamily: 'var(--font-sans), sans-serif',
                 margin: '0 0 10px',
-                fontSize: 'clamp(28px, 3.2vw, 38px)',
-                fontWeight: 600,
+                fontSize: 'clamp(28px, 3.4vw, 40px)',
+                fontWeight: 400,
                 letterSpacing: '-0.025em',
                 color: '#1C1B18',
               }}
             >
               Three ways to control traffic.
             </h2>
-            <p style={{ margin: 0, fontSize: '15.5px', color: '#5F5C55', lineHeight: 1.6 }}>
+            <p style={{ margin: 0, fontSize: '15.5px', color: '#4A4843', lineHeight: 1.6 }}>
               Compare how Token Bucket, Fixed Window, and Sliding Window mitigate sudden floods in real time.
             </p>
           </div>
