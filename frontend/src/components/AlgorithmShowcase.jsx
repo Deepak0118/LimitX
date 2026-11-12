@@ -92,8 +92,8 @@ export default function AlgorithmShowcase() {
                     fontFamily: 'var(--font-mono)',
                     fontSize: '11.5px',
                     padding: '4px 10px',
-                    background: '#F5F2EB',
-                    border: '1px solid #C9C3B7',
+                    background: '#EBE7DE',
+                    border: '1px solid #DCD7CD',
                     borderRadius: '2px',
                     color: '#4A4843',
                     whiteSpace: 'nowrap',
@@ -153,7 +153,7 @@ export default function AlgorithmShowcase() {
                         const isCapped = capped.includes(i);
 
                         return (
-                          <g key={i}>
+                          <g key={`${mode.id}-${pattern}-${i}`}>
                             <rect
                               x={x}
                               y={y}
@@ -161,7 +161,8 @@ export default function AlgorithmShowcase() {
                               height={h}
                               rx="1.5"
                               fill="#1C1B18"
-                              style={{ transition: 'all 220ms ease' }}
+                              className="lx-bar-rise"
+                              style={{ animationDelay: `${i * 22}ms` }}
                             />
                             {isCapped && (
                               <g>

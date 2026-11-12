@@ -1,19 +1,19 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, Copy, ArrowRight } from 'lucide-react';
 import { PROXY_BASE } from '../api';
 import BrandLogo from '../components/BrandLogo';
-import AnimatedGatewayBeam from '../components/AnimatedGatewayBeam';
+import HeroGateTheater from '../components/HeroGateTheater';
 import WhyLimitXStage from '../components/WhyLimitXStage';
 import AlgorithmShowcase from '../components/AlgorithmShowcase';
-import BlurText from '../components/ui/BlurText';
-import FadeInSection from '../components/ui/FadeInSection';
+import ScrollRevealStage from '../components/ui/ScrollRevealStage';
 
 const SAMPLE_PROXY_URL = `${PROXY_BASE}/proxy/api_7f3a9c12`;
 
 export default function Landing() {
   const [cutoverTab, setCutoverTab] = useState('env'); // 'flow' | 'env' | 'curl'
   const [copiedEnv, setCopiedEnv] = useState(false);
+  const [isDarkNav, setIsDarkNav] = useState(true);
 
   const envSnippet = `# Before\n- API_BASE_URL=https://api.example.com\n\n# After\n+ API_BASE_URL=${SAMPLE_PROXY_URL}`;
   const curlSnippet = `curl -i "${SAMPLE_PROXY_URL}/auth/login" \\\n  -X POST -H "Content-Type: application/json"`;
@@ -24,37 +24,102 @@ export default function Landing() {
     setTimeout(() => setCopiedEnv(false), 1500);
   };
 
+  const handleNavThemeChange = useCallback((dark) => {
+    setIsDarkNav(dark);
+  }, []);
+
+  const scrollToSetup = (e) => {
+    if (e) e.preventDefault();
+    const overview = document.getElementById('overview');
+    if (overview) {
+      const targetY = Math.max(0, overview.offsetHeight - window.innerHeight);
+      window.scrollTo({ top: targetY, behavior: 'smooth' });
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: '#F5F2EB', color: '#1C1B18' }}>
-      {/* Warm Light Editorial Navbar */}
+      {/* Adaptive Editorial Sticky Navbar (Obsidian over Gate -> Warm Stone on Scroll) */}
       <header
         className="lx-nav"
         style={{
-          background: 'rgba(245, 242, 235, 0.94)',
-          borderBottom: '1px solid #DCD7CD',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          background: isDarkNav ? 'rgba(20, 19, 17, 0.86)' : 'rgba(245, 242, 235, 0.94)',
+          borderBottom: isDarkNav ? '1px solid rgba(245, 242, 235, 0.12)' : '1px solid #DCD7CD',
           height: '68px',
+          transition: 'background-color 280ms ease, border-color 280ms ease',
         }}
       >
-        <div className="lx-nav-inner" style={{ maxWidth: '1120px' }}>
+        <div className="lx-nav-inner" style={{ maxWidth: '1200px' }}>
           <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
-            <BrandLogo size={25} fontSize="18.5px" />
+            <BrandLogo size={25} fontSize="18.5px" dark={isDarkNav} />
           </Link>
 
           <nav className="lx-nav-links" aria-label="Landing navigation" style={{ gap: '26px' }}>
-            <a href="#integration" style={{ fontSize: '14.5px', fontWeight: 500, color: '#4A4843', textDecoration: 'none' }}>Setup</a>
-            <a href="#why-limitx" style={{ fontSize: '14.5px', fontWeight: 500, color: '#4A4843', textDecoration: 'none' }}>Why LimitX</a>
-            <a href="#algorithms" style={{ fontSize: '14.5px', fontWeight: 500, color: '#4A4843', textDecoration: 'none' }}>Modes</a>
-            <Link to="/auth?mode=login" style={{ fontSize: '14.5px', fontWeight: 500, color: '#1C1B18', textDecoration: 'none' }}>Sign in</Link>
+            <a
+              href="#integration"
+              onClick={scrollToSetup}
+              style={{
+                fontSize: '14.5px',
+                fontWeight: 500,
+                color: isDarkNav ? '#BDB7AB' : '#4A4843',
+                textDecoration: 'none',
+                transition: 'color 260ms ease',
+              }}
+            >
+              Setup
+            </a>
+            <a
+              href="#why-limitx"
+              style={{
+                fontSize: '14.5px',
+                fontWeight: 500,
+                color: isDarkNav ? '#BDB7AB' : '#4A4843',
+                textDecoration: 'none',
+                transition: 'color 260ms ease',
+              }}
+            >
+              Why LimitX
+            </a>
+            <a
+              href="#algorithms"
+              style={{
+                fontSize: '14.5px',
+                fontWeight: 500,
+                color: isDarkNav ? '#BDB7AB' : '#4A4843',
+                textDecoration: 'none',
+                transition: 'color 260ms ease',
+              }}
+            >
+              Modes
+            </a>
+            <Link
+              to="/auth?mode=login"
+              style={{
+                fontSize: '14.5px',
+                fontWeight: 500,
+                color: isDarkNav ? '#FBF9F5' : '#1C1B18',
+                textDecoration: 'none',
+                transition: 'color 260ms ease',
+              }}
+            >
+              Sign in
+            </Link>
             <Link
               to="/auth?mode=signup"
               style={{
                 padding: '8px 16px',
                 borderRadius: '2px',
-                background: '#1C1B18',
-                color: '#FBF9F5',
+                background: isDarkNav ? '#FBF9F5' : '#1C1B18',
+                color: isDarkNav ? '#1C1B18' : '#FBF9F5',
                 fontSize: '13.5px',
                 fontWeight: 500,
                 textDecoration: 'none',
+                transition: 'background-color 260ms ease, color 260ms ease',
               }}
             >
               Get started
@@ -63,311 +128,233 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* Band 1 (Pattern 1 — Asymmetric Hero + Live Animated Beam Diagram) */}
+      {/* Band 1 + Band 2: Apple-Style Architectural Scroll Gate Opening Into 1-Step URL Swap */}
+      <HeroGateTheater onNavThemeChange={handleNavThemeChange} onOpenSetup={scrollToSetup}>
+        <div style={{ maxWidth: '820px', width: '100%', margin: '0 auto', textAlign: 'center' }}>
+          <h2 style={{ margin: '0 0 10px', fontSize: 'clamp(28px, 3.4vw, 40px)', fontWeight: 400, letterSpacing: '-0.025em', color: '#1C1B18' }}>
+            Live in one URL swap.
+          </h2>
+          <p style={{ margin: '0 auto 24px', fontSize: '15.5px', color: '#4A4843', lineHeight: 1.6, maxWidth: '520px' }}>
+            No SDKs to install, no middleware to wire up, and no backend redeploy when limits change.
+          </p>
+
+          {/* Centered Inline Step Pills */}
+          <div style={{ display: 'inline-flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '26px' }}>
+            {[
+              'Paste origin URL',
+              '→',
+              'Swap API_BASE_URL',
+              '→',
+              'Control limits live',
+            ].map((token, i) =>
+              token === '→' ? (
+                <span key={i} style={{ color: '#8C887F', fontSize: '13px', padding: '0 2px' }}>→</span>
+              ) : (
+                <span
+                  key={token}
+                  style={{
+                    padding: '6px 12px',
+                    background: '#FBF9F5',
+                    border: '1px solid #DCD7CD',
+                    borderRadius: '2px',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    color: '#1C1B18',
+                  }}
+                >
+                  {token}
+                </span>
+              ),
+            )}
+          </div>
+
+          {/* Centered Warm Charcoal Code Strip */}
+          <div style={{ background: '#22211E', color: '#FBF9F5', border: '1px solid #383631', borderRadius: '2px', textAlign: 'left', boxShadow: '0 24px 52px -28px rgba(28, 27, 24, 0.25)' }}>
+            <div style={{ padding: '11px 16px', borderBottom: '1px solid #35332F', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'inline-flex', gap: '6px' }}>
+                {[
+                  { id: 'env', label: '.env swap' },
+                  { id: 'curl', label: 'Test cURL' },
+                  { id: 'flow', label: 'Traffic path' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setCutoverTab(tab.id)}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '0px',
+                      border: cutoverTab === tab.id ? '1px solid #5F5C55' : '1px solid transparent',
+                      background: cutoverTab === tab.id ? '#35332F' : 'transparent',
+                      color: cutoverTab === tab.id ? '#FBF9F5' : '#9B968C',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCopy}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '0px',
+                  border: '1px solid #4A4741',
+                  background: 'transparent',
+                  color: '#FBF9F5',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  cursor: 'pointer',
+                }}
+              >
+                {copiedEnv ? <Check size={11} color="#FBF9F5" /> : <Copy size={11} />}
+                {copiedEnv ? 'Copied' : 'Copy'}
+              </button>
+            </div>
+
+            <div style={{ padding: '22px 20px' }}>
+              {cutoverTab === 'flow' ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '10px' }}>
+                  {[
+                    { title: 'Client', sub: 'Calls /proxy/:apiId' },
+                    { title: 'LimitX', sub: 'Limits & IP filter' },
+                    { title: 'Backend', sub: 'Clean traffic only' },
+                  ].map((node) => (
+                    <div key={node.title} style={{ padding: '14px 12px', background: '#2B2A27', border: '1px solid #3D3B37' }}>
+                      <div style={{ fontSize: '12.5px', fontWeight: 600, color: '#FBF9F5', marginBottom: '4px' }}>
+                        {node.title}
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: '#A5A096' }}>
+                        {node.sub}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <pre style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: '12px', lineHeight: 1.7, color: '#FBF9F5', whiteSpace: 'pre-wrap', overflowX: 'auto' }}>
+                  {cutoverTab === 'curl' ? curlSnippet : envSnippet}
+                </pre>
+              )}
+            </div>
+          </div>
+        </div>
+      </HeroGateTheater>
+
+      {/* Band 3: Apple-Style Expanding Horizontal Panels (Warm Limestone + Scroll Depth Rise) */}
       <section
-        id="overview"
+        id="why-limitx"
         style={{
-          maxWidth: '1120px',
-          margin: '0 auto',
-          padding: '64px 24px 80px',
+          background: '#E6E2D9',
+          borderTop: '1px solid #DCD7CD',
+          borderBottom: '1px solid #DCD7CD',
         }}
       >
-        <div className="lx-hero-grid" style={{ gap: '48px', alignItems: 'center' }}>
-          <div>
-            <h1
+        <ScrollRevealStage mode="rise">
+          <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '88px 24px' }}>
+            <div style={{ marginBottom: '30px' }}>
+              <h2 style={{ margin: '0 0 8px', fontSize: 'clamp(26px, 3vw, 34px)', fontWeight: 400, letterSpacing: '-0.025em', color: '#1C1B18' }}>
+                Protect your server, your users, and your bill.
+              </h2>
+              <p style={{ margin: 0, fontSize: '15px', color: '#4A4843', maxWidth: '520px' }}>
+                Hover or click any panel to see what changes the moment traffic hits LimitX.
+              </p>
+            </div>
+
+            <WhyLimitXStage />
+          </div>
+        </ScrollRevealStage>
+      </section>
+
+      {/* Band 4: Linear-Style Hairline Expandable Index (Warm Stone + Scroll Depth Rise) */}
+      <section id="algorithms" style={{ maxWidth: '1040px', margin: '0 auto', padding: '86px 24px' }}>
+        <ScrollRevealStage mode="rise">
+          <div style={{ marginBottom: '14px' }}>
+            <h2 style={{ margin: '0 0 8px', fontSize: 'clamp(25px, 3vw, 32px)', fontWeight: 400, letterSpacing: '-0.025em', color: '#1C1B18' }}>
+              Three ways to control traffic.
+            </h2>
+            <p style={{ margin: 0, fontSize: '15px', color: '#4A4843' }}>
+              Expand a rule below to compare how each algorithm handles steady traffic vs sudden floods.
+            </p>
+          </div>
+
+          <AlgorithmShowcase />
+        </ScrollRevealStage>
+      </section>
+
+      {/* Band 5: Mirrored Architectural Closing Framing CTA (Warm Limestone) */}
+      <section
+        style={{
+          background: '#E6E2D9',
+          borderTop: '1px solid #DCD7CD',
+          borderBottom: '1px solid #DCD7CD',
+        }}
+      >
+        <ScrollRevealStage mode="finale">
+          <div style={{ maxWidth: '920px', margin: '0 auto', padding: '96px 24px', textAlign: 'center' }}>
+            <h2
               style={{
-                margin: '0 0 20px',
-                fontSize: 'clamp(36px, 4.3vw, 52px)',
+                margin: '0 0 14px',
+                fontSize: 'clamp(30px, 4vw, 44px)',
                 fontWeight: 400,
-                lineHeight: 1.07,
                 letterSpacing: '-0.03em',
+                lineHeight: 1.1,
                 color: '#1C1B18',
               }}
             >
-              <BlurText text="Rate limit your APIs without touching backend code." delayStep={35} startDelay={20} />
-            </h1>
-
-            <p
-              style={{
-                margin: '0 0 28px',
-                fontSize: '16px',
-                lineHeight: 1.6,
-                color: '#4A4843',
-                maxWidth: '470px',
-              }}
-            >
-              Drop LimitX in front of any API. Stop abusive bursts, adjust route limits live, and protect your server bill from one console.
+              Stop fighting traffic spikes in backend code.
+            </h2>
+            <p style={{ margin: '0 auto 28px', fontSize: '16px', color: '#4A4843', maxWidth: '460px', lineHeight: 1.6 }}>
+              Put your first API behind LimitX in under a minute.
             </p>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'inline-flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
               <Link
                 to="/auth?mode=signup"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '7px',
-                  padding: '11px 20px',
+                  padding: '12px 22px',
                   borderRadius: '2px',
                   background: '#1C1B18',
                   color: '#FBF9F5',
-                  fontSize: '14px',
+                  fontSize: '14.5px',
                   fontWeight: 500,
                   textDecoration: 'none',
                 }}
               >
-                Create free account <ArrowRight size={14} />
+                Start protecting APIs <ArrowRight size={14} />
               </Link>
-              <a
-                href="#integration"
+              <Link
+                to="/auth?mode=login"
                 style={{
                   display: 'inline-block',
-                  padding: '10px 16px',
+                  padding: '11px 18px',
                   borderRadius: '2px',
                   border: '1px solid #C9C3B7',
                   background: '#FBF9F5',
-                  fontSize: '14px',
+                  fontSize: '14.5px',
                   fontWeight: 500,
                   color: '#1C1B18',
                   textDecoration: 'none',
                 }}
               >
-                1-step setup
-              </a>
+                Sign in
+              </Link>
             </div>
           </div>
-
-          <AnimatedGatewayBeam />
-        </div>
-      </section>
-
-      {/* Band 2 (Pattern 2 — Centered Docked Spotlight + Single Wide Code Bar) */}
-      <section
-        id="integration"
-        style={{
-          background: '#E6E2D9',
-          borderTop: '1px solid #DCD7CD',
-          borderBottom: '1px solid #DCD7CD',
-        }}
-      >
-        <FadeInSection>
-          <div style={{ maxWidth: '820px', margin: '0 auto', padding: '76px 24px', textAlign: 'center' }}>
-            <h2 style={{ margin: '0 0 10px', fontSize: 'clamp(26px, 3vw, 34px)', fontWeight: 400, letterSpacing: '-0.025em', color: '#1C1B18' }}>
-              Live in one URL swap.
-            </h2>
-            <p style={{ margin: '0 auto 24px', fontSize: '15px', color: '#4A4843', lineHeight: 1.6, maxWidth: '520px' }}>
-              No SDKs to install, no middleware to wire up, and no backend redeploy when limits change.
-            </p>
-
-            {/* Centered Inline Step Pills */}
-            <div style={{ display: 'inline-flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '28px' }}>
-              {[
-                'Paste origin URL',
-                '→',
-                'Swap API_BASE_URL',
-                '→',
-                'Control limits live',
-              ].map((token, i) =>
-                token === '→' ? (
-                  <span key={i} style={{ color: '#8C887F', fontSize: '13px', padding: '0 2px' }}>→</span>
-                ) : (
-                  <span
-                    key={token}
-                    style={{
-                      padding: '6px 12px',
-                      background: '#FBF9F5',
-                      border: '1px solid #DCD7CD',
-                      borderRadius: '2px',
-                      fontSize: '13px',
-                      fontWeight: 500,
-                      color: '#1C1B18',
-                    }}
-                  >
-                    {token}
-                  </span>
-                ),
-              )}
-            </div>
-
-            {/* Centered Warm Charcoal Code Strip */}
-            <div style={{ background: '#22211E', color: '#FBF9F5', border: '1px solid #383631', borderRadius: '2px', textAlign: 'left' }}>
-              <div style={{ padding: '11px 16px', borderBottom: '1px solid #35332F', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <div style={{ display: 'inline-flex', gap: '6px' }}>
-                  {[
-                    { id: 'env', label: '.env swap' },
-                    { id: 'curl', label: 'Test cURL' },
-                    { id: 'flow', label: 'Traffic path' },
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setCutoverTab(tab.id)}
-                      style={{
-                        padding: '4px 10px',
-                        borderRadius: '0px',
-                        border: cutoverTab === tab.id ? '1px solid #5F5C55' : '1px solid transparent',
-                        background: cutoverTab === tab.id ? '#35332F' : 'transparent',
-                        color: cutoverTab === tab.id ? '#FBF9F5' : '#9B968C',
-                        fontSize: '12px',
-                        fontWeight: 500,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: '0px',
-                    border: '1px solid #4A4741',
-                    background: 'transparent',
-                    color: '#FBF9F5',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {copiedEnv ? <Check size={11} color="#FBF9F5" /> : <Copy size={11} />}
-                  {copiedEnv ? 'Copied' : 'Copy'}
-                </button>
-              </div>
-
-              <div style={{ padding: '22px 20px' }}>
-                {cutoverTab === 'flow' ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '10px' }}>
-                    {[
-                      { title: 'Client', sub: 'Calls /proxy/:apiId' },
-                      { title: 'LimitX', sub: 'Limits & IP filter' },
-                      { title: 'Backend', sub: 'Clean traffic only' },
-                    ].map((node) => (
-                      <div key={node.title} style={{ padding: '14px 12px', background: '#2B2A27', border: '1px solid #3D3B37' }}>
-                        <div style={{ fontSize: '12.5px', fontWeight: 600, color: '#FBF9F5', marginBottom: '4px' }}>
-                          {node.title}
-                        </div>
-                        <div style={{ fontSize: '11.5px', color: '#A5A096' }}>
-                          {node.sub}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <pre style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: '12px', lineHeight: 1.7, color: '#FBF9F5', whiteSpace: 'pre-wrap', overflowX: 'auto' }}>
-                    {cutoverTab === 'curl' ? curlSnippet : envSnippet}
-                  </pre>
-                )}
-              </div>
-            </div>
-          </div>
-        </FadeInSection>
-      </section>
-
-      {/* Band 3 (Pattern 3 — Apple-Style Expanding Horizontal Panels) */}
-      <section id="why-limitx" style={{ maxWidth: '1120px', margin: '0 auto', padding: '80px 24px' }}>
-        <FadeInSection>
-          <div style={{ marginBottom: '30px' }}>
-            <h2 style={{ margin: '0 0 8px', fontSize: 'clamp(26px, 3vw, 34px)', fontWeight: 400, letterSpacing: '-0.025em', color: '#1C1B18' }}>
-              Protect your server, your users, and your bill.
-            </h2>
-            <p style={{ margin: 0, fontSize: '15px', color: '#4A4843', maxWidth: '520px' }}>
-              Hover or click any panel to see what changes the moment traffic hits LimitX.
-            </p>
-          </div>
-
-          <WhyLimitXStage />
-        </FadeInSection>
-      </section>
-
-      {/* Band 4 (Pattern 4 — Linear-Style Hairline Expandable Index) */}
-      <section
-        id="algorithms"
-        style={{
-          background: '#E6E2D9',
-          borderTop: '1px solid #DCD7CD',
-          borderBottom: '1px solid #DCD7CD',
-        }}
-      >
-        <FadeInSection>
-          <div style={{ maxWidth: '1040px', margin: '0 auto', padding: '78px 24px' }}>
-            <div style={{ marginBottom: '14px' }}>
-              <h2 style={{ margin: '0 0 8px', fontSize: 'clamp(25px, 3vw, 32px)', fontWeight: 400, letterSpacing: '-0.025em', color: '#1C1B18' }}>
-                Three ways to control traffic.
-              </h2>
-              <p style={{ margin: 0, fontSize: '15px', color: '#4A4843' }}>
-                Expand a rule below to compare how each algorithm handles steady traffic vs sudden floods.
-              </p>
-            </div>
-
-            <AlgorithmShowcase />
-          </div>
-        </FadeInSection>
-      </section>
-
-      {/* Band 5 (Pattern 5 — Centered Oversized Editorial Typography Statement) */}
-      <section style={{ maxWidth: '920px', margin: '0 auto', padding: '96px 24px', textAlign: 'center' }}>
-        <FadeInSection>
-          <h2
-            style={{
-              margin: '0 0 14px',
-              fontSize: 'clamp(30px, 4vw, 44px)',
-              fontWeight: 400,
-              letterSpacing: '-0.03em',
-              lineHeight: 1.1,
-              color: '#1C1B18',
-            }}
-          >
-            Stop fighting traffic spikes in backend code.
-          </h2>
-          <p style={{ margin: '0 auto 28px', fontSize: '16px', color: '#4A4843', maxWidth: '460px', lineHeight: 1.6 }}>
-            Put your first API behind LimitX in under a minute.
-          </p>
-
-          <div style={{ display: 'inline-flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Link
-              to="/auth?mode=signup"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '7px',
-                padding: '12px 22px',
-                borderRadius: '2px',
-                background: '#1C1B18',
-                color: '#FBF9F5',
-                fontSize: '14.5px',
-                fontWeight: 500,
-                textDecoration: 'none',
-              }}
-            >
-              Start protecting APIs <ArrowRight size={14} />
-            </Link>
-            <Link
-              to="/auth?mode=login"
-              style={{
-                display: 'inline-block',
-                padding: '11px 18px',
-                borderRadius: '2px',
-                border: '1px solid #C9C3B7',
-                background: '#FBF9F5',
-                fontSize: '14.5px',
-                fontWeight: 500,
-                color: '#1C1B18',
-                textDecoration: 'none',
-              }}
-            >
-              Sign in
-            </Link>
-          </div>
-        </FadeInSection>
+        </ScrollRevealStage>
       </section>
 
       {/* Footer */}
-      <footer style={{ borderTop: '1px solid #DCD7CD', background: '#F5F2EB' }}>
+      <footer style={{ background: '#F5F2EB' }}>
         <div
           style={{
             maxWidth: '1120px',
@@ -386,7 +373,7 @@ export default function Landing() {
             <BrandLogo size={18} fontSize="14px" />
           </Link>
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <a href="#integration" style={{ color: 'inherit', textDecoration: 'none' }}>Setup</a>
+            <a href="#integration" onClick={scrollToSetup} style={{ color: 'inherit', textDecoration: 'none' }}>Setup</a>
             <a href="#why-limitx" style={{ color: 'inherit', textDecoration: 'none' }}>Why LimitX</a>
             <a href="#algorithms" style={{ color: 'inherit', textDecoration: 'none' }}>Modes</a>
             <Link to="/auth?mode=login" style={{ color: 'inherit', textDecoration: 'none' }}>Sign in</Link>

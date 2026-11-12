@@ -876,6 +876,99 @@ label {
   animation: lx-stage-enter 280ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+@keyframes lx-scroll-stem {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.lx-scroll-stem {
+  animation: lx-scroll-stem 1.9s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+
+.lx-gate-theater {
+  height: 225vh;
+  position: relative;
+  background: #1B1916;
+}
+
+.lx-gate-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Sculpted Warm Bronze-Charcoal Architectural Doors with Subtle Fluted Texture */
+.lx-gate-door {
+  flex: 1;
+  height: 100%;
+  position: relative;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(230, 226, 217, 0.025) 0px,
+      rgba(230, 226, 217, 0.025) 1px,
+      transparent 1px,
+      transparent 22px
+    ),
+    radial-gradient(circle at 50% 44%, rgba(230, 226, 217, 0.09), transparent 60%),
+    linear-gradient(168deg, #282520 0%, #1D1B17 55%, #141310 100%);
+  will-change: transform;
+}
+
+.lx-gate-door-left {
+  border-right: 1px solid rgba(230, 226, 217, 0.24);
+  box-shadow:
+    inset -48px 0 84px rgba(10, 9, 8, 0.72),
+    24px 0 60px rgba(10, 9, 8, 0.45);
+}
+
+.lx-gate-door-right {
+  border-left: 1px solid rgba(230, 226, 217, 0.24);
+  box-shadow:
+    inset 48px 0 84px rgba(10, 9, 8, 0.72),
+    -24px 0 60px rgba(10, 9, 8, 0.45);
+}
+
+/* Recessed Architectural Monolith Coffer Inset on Each Door */
+.lx-gate-coffer {
+  position: absolute;
+  top: 96px;
+  bottom: 42px;
+  border: 1px solid rgba(230, 226, 217, 0.11);
+  background: linear-gradient(180deg, rgba(255, 252, 245, 0.025) 0%, rgba(0, 0, 0, 0.2) 100%);
+  box-shadow: inset 0 1px 0 rgba(251, 249, 245, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+@keyframes lx-bar-rise {
+  0% {
+    transform: scaleY(0);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.lx-bar-rise {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: lx-bar-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @media (max-width: 900px) {
   .lx-expand-deck {
     flex-direction: column;
@@ -893,12 +986,20 @@ label {
   .lx-hairline-hide-sm {
     display: none;
   }
+  .lx-gate-theater {
+    height: 185vh;
+  }
+  .lx-gate-coffer {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .lx-blur-word,
   .lx-beam-flow,
-  .lx-stage-enter {
+  .lx-stage-enter,
+  .lx-scroll-stem,
+  .lx-bar-rise {
     animation: none !important;
     opacity: 1 !important;
     filter: none !important;
