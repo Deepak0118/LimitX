@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { api, setToken } from '../api';
 import { ArrowRight, Eye, EyeOff, Loader } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
+import VaultLockerAuth from '../components/VaultLockerAuth';
 
 const OAUTH_ERRORS = {
   access_denied: 'Google sign-in was cancelled.',
@@ -189,9 +190,18 @@ export default function Auth() {
               </>
             )}
           </h1>
-          <p style={{ margin: '0 0 32px', color: '#4A4843', fontSize: '15px', lineHeight: 1.6 }}>
+          <p style={{ margin: '0 0 24px', color: '#4A4843', fontSize: '15px', lineHeight: 1.6 }}>
             Set up proxy URLs, per-route rate limits, IP blocklists, and live request logs from one dashboard.
           </p>
+
+          {/* Interactive Bank Safe Rate-Vault Locker */}
+          <VaultLockerAuth
+            mode={mode}
+            email={form.email}
+            password={form.password}
+            loading={loading || oauthBusy}
+            error={error}
+          />
 
           <div style={{ borderTop: '1px solid #CFC9BC' }}>
             {[

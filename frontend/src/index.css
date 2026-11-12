@@ -894,62 +894,435 @@ label {
   animation: lx-scroll-stem 1.9s cubic-bezier(0.45, 0, 0.25, 1) infinite;
 }
 
-.lx-gate-theater {
-  height: 225vh;
+/* =========================================================================
+   LIMITX CINEMATIC 3D OZONE LAYER HERO STAGE
+   Warm Swiss Editorial Stone Palette (High-Contrast Architectural Detailing)
+   ========================================================================= */
+
+.lx-ref-hero-root,
+.lx-vector-hero-container {
+  width: 100%;
   position: relative;
-  background: #1B1916;
+  background: #F5F2EB;
+  overflow: hidden;
 }
 
-.lx-gate-sticky {
-  position: sticky;
-  top: 0;
-  height: 100vh;
+.lx-ref-wrap,
+.lx-vector-wrap {
+  width: 100%;
+  position: relative;
   overflow: hidden;
+  background: #F5F2EB;
+}
+
+.lx-ref-stage,
+.lx-vector-stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1024px;
+  height: 576px;
+  transform-origin: 0 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 30%, #FAF8F5 0%, #F5F2EB 60%, #EBE5D8 100%);
+  color: #1C1B18;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+.lx-ref-stage .abs,
+.lx-vector-stage .abs {
+  position: absolute;
+}
+
+.lx-ref-stage svg.scene,
+.lx-vector-stage svg.scene {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1024px;
+  height: 576px;
+}
+
+/* Integrated Header Navigation */
+.lx-ref-stage .logo,
+.lx-vector-stage .logo {
+  left: 54px;
+  top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1C1B18;
+  letter-spacing: -0.02em;
+}
+
+.lx-ref-stage .nav a,
+.lx-vector-stage .nav a {
+  position: absolute;
+  top: 15px;
+  font-size: 9.5px;
+  font-weight: 500;
+  color: #4A4843;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.lx-ref-stage .nav a:hover,
+.lx-vector-stage .nav a:hover {
+  color: #1C1B18;
+}
+
+.lx-ref-stage .btn,
+.lx-vector-stage .btn {
+  position: absolute;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 600;
+  font-size: 9.5px;
+  border-radius: 999px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: none;
 }
 
-/* Sculpted Warm Bronze-Charcoal Architectural Doors with Subtle Fluted Texture */
-.lx-gate-door {
-  flex: 1;
-  height: 100%;
-  position: relative;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      rgba(230, 226, 217, 0.025) 0px,
-      rgba(230, 226, 217, 0.025) 1px,
-      transparent 1px,
-      transparent 22px
-    ),
-    radial-gradient(circle at 50% 44%, rgba(230, 226, 217, 0.09), transparent 60%),
-    linear-gradient(168deg, #282520 0%, #1D1B17 55%, #141310 100%);
-  will-change: transform;
+.lx-ref-stage .btn:hover,
+.lx-vector-stage .btn:hover {
+  transform: translateY(-1px);
 }
 
-.lx-gate-door-left {
-  border-right: 1px solid rgba(230, 226, 217, 0.24);
-  box-shadow:
-    inset -48px 0 84px rgba(10, 9, 8, 0.72),
-    24px 0 60px rgba(10, 9, 8, 0.45);
+.lx-ref-stage .btn:focus-visible,
+.lx-ref-stage .nav a:focus-visible,
+.lx-vector-stage .btn:focus-visible,
+.lx-vector-stage .nav a:focus-visible {
+  outline: 2px solid #1C1B18;
+  outline-offset: 2px;
 }
 
-.lx-gate-door-right {
-  border-left: 1px solid rgba(230, 226, 217, 0.24);
-  box-shadow:
-    inset 48px 0 84px rgba(10, 9, 8, 0.72),
-    -24px 0 60px rgba(10, 9, 8, 0.45);
+.lx-ref-stage .login,
+.lx-vector-stage .login {
+  left: 852px;
+  top: 8px;
+  width: 56px;
+  height: 26px;
+  border: 1px solid #DCD7CD;
+  background: rgba(251, 249, 245, 0.85);
+  color: #1C1B18;
+  backdrop-filter: blur(8px);
 }
 
-/* Recessed Architectural Monolith Coffer Inset on Each Door */
-.lx-gate-coffer {
+.lx-ref-stage .start,
+.lx-vector-stage .start {
+  left: 918px;
+  top: 8px;
+  width: 82px;
+  height: 26px;
+  background: #1C1B18;
+  color: #FAF8F5;
+  box-shadow: 0 2px 10px rgba(28, 27, 24, 0.15);
+}
+
+/* Hero Left Bay */
+.lx-ref-stage .pill,
+.lx-vector-stage .pill {
+  left: 44px;
+  top: 117px;
+  height: 20px;
+  padding: 0 10px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 8px;
+  font-weight: 600;
+  color: #1C1B18;
+  background: rgba(251, 249, 245, 0.94);
+  border: 1px solid #C89842;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(200, 152, 66, 0.12);
+  backdrop-filter: blur(6px);
+}
+
+.lx-ref-stage h1,
+.lx-vector-stage h1 {
+  left: 44px;
+  top: 143px;
+  font-size: 25px;
+  line-height: 28px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: #1C1B18;
+  margin: 0;
+}
+
+.lx-ref-stage h1 span,
+.lx-vector-stage h1 span {
+  color: #C89842;
+}
+
+.lx-ref-stage .sub,
+.lx-vector-stage .sub {
+  left: 44px;
+  top: 211px;
+  width: 250px;
+  font-size: 10px;
+  line-height: 14.5px;
+  color: #4A4843;
+  margin: 0;
+}
+
+.lx-ref-stage .cta1,
+.lx-vector-stage .cta1 {
+  left: 44px;
+  top: 270px;
+  width: 108px;
+  height: 27px;
+  background: #1C1B18;
+  color: #FAF8F5;
+  font-size: 9.5px;
+  box-shadow: 0 4px 16px rgba(28, 27, 24, 0.18);
+  border: none;
+}
+
+.lx-ref-stage .cta2,
+.lx-vector-stage .cta2 {
+  left: 160px;
+  top: 270px;
+  width: 102px;
+  height: 27px;
+  background: #FAF8F5;
+  border: 1px solid #DCD7CD;
+  gap: 6px;
+  color: #1C1B18;
+  backdrop-filter: blur(6px);
+}
+
+/* Floating Glass Cards */
+.lx-ref-stage .card,
+.lx-vector-stage .card {
+  background: rgba(251, 249, 245, 0.94);
+  border: 1px solid #DCD7CD;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(28, 27, 24, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.lx-ref-stage .feat,
+.lx-vector-stage .feat {
+  left: 37px;
+  top: 325px;
+  width: 189px;
+  height: 127px;
+  padding: 8px 10px;
+}
+
+.lx-ref-stage .feat div.row,
+.lx-vector-stage .feat div.row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 40px;
+  border-bottom: 1px solid rgba(28, 27, 24, 0.05);
+}
+
+.lx-ref-stage .feat div.row:last-child,
+.lx-vector-stage .feat div.row:last-child {
+  border-bottom: none;
+}
+
+.lx-ref-stage .feat .ic,
+.lx-vector-stage .feat .ic {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.lx-ref-stage .feat b,
+.lx-vector-stage .feat b {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #1C1B18;
+}
+
+.lx-ref-stage .feat small,
+.lx-vector-stage .feat small {
+  display: block;
+  font-size: 7.5px;
+  color: #5F5C55;
+  margin-top: 2px;
+}
+
+.lx-ref-stage .leg,
+.lx-vector-stage .leg {
+  left: 847px;
+  top: 340px;
+  width: 158px;
+  height: 108px;
+  padding: 10px 11px;
+}
+
+.lx-ref-stage .leg .row,
+.lx-vector-stage .leg .row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+}
+
+.lx-ref-stage .leg b,
+.lx-vector-stage .leg b {
+  display: block;
+  font-size: 8px;
+  font-weight: 600;
+  color: #1C1B18;
+}
+
+.lx-ref-stage .leg small,
+.lx-vector-stage .leg small {
+  display: block;
+  font-size: 7px;
+  color: #5F5C55;
+}
+
+/* Callout Tags with Hairline Arrows */
+.lx-ref-stage .tag,
+.lx-vector-stage .tag {
   position: absolute;
-  top: 96px;
-  bottom: 42px;
-  border: 1px solid rgba(230, 226, 217, 0.11);
-  background: linear-gradient(180deg, rgba(255, 252, 245, 0.025) 0%, rgba(0, 0, 0, 0.2) 100%);
-  box-shadow: inset 0 1px 0 rgba(251, 249, 245, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+  border-radius: 7px;
+  padding: 4px 8px;
+  font-size: 8.5px;
+  font-weight: 600;
+  line-height: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lx-ref-stage .tag small,
+.lx-vector-stage .tag small {
+  display: block;
+  font-size: 6.5px;
+  font-weight: 500;
+  opacity: 0.88;
+}
+
+.lx-ref-stage .tag.blk,
+.lx-vector-stage .tag.blk {
+  left: 274px;
+  top: 87px;
+  width: 121px;
+  height: 33px;
+  color: #1C1B18;
+  background: #FAF8F5;
+  border: 1px solid #A83B2B;
+  box-shadow: 0 4px 16px rgba(168, 59, 43, 0.12);
+}
+
+.lx-ref-stage .tag.alw,
+.lx-vector-stage .tag.alw {
+  left: 846px;
+  top: 122px;
+  width: 71px;
+  height: 33px;
+  color: #1C1B18;
+  background: #FAF8F5;
+  border: 1px solid #2F6B48;
+  box-shadow: 0 4px 16px rgba(47, 107, 72, 0.12);
+}
+
+/* Dais Backend Databases / Services Pill */
+.lx-ref-stage .bpill,
+.lx-vector-stage .bpill {
+  left: 456px;
+  top: 441px;
+  width: 210px;
+  height: 35px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #FAF8F5;
+  background: #1C1B18;
+  border: 1px solid #C89842;
+  box-shadow: 0 4px 18px rgba(28, 27, 24, 0.25);
+}
+
+/* Ozone Layer Central Shield Pill */
+.lx-ref-stage .ozlabel,
+.lx-vector-stage .ozlabel {
+  left: 490px;
+  top: 203px;
+  width: 160px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 14px;
+  color: #1C1B18;
+  background: rgba(251, 249, 245, 0.94);
+  border: 1px solid #2563EB;
+  border-radius: 999px;
+  padding: 4px 12px;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.14);
+}
+
+.lx-ref-stage .ozlabel small,
+.lx-vector-stage .ozlabel small {
+  display: block;
+  font-size: 8px;
+  font-weight: 500;
+  color: #2563EB;
+}
+
+/* Animations from Reference Geometry */
+.dropf {
+  animation: fl 4s ease-in-out infinite;
+}
+@keyframes fl {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}
+
+.rf { animation: rfk 1.4s linear infinite; }
+.rm { animation: rmk 1s linear infinite; }
+.rn { animation: rnk 0.75s linear infinite; }
+@keyframes rfk { to { transform: translateY(71px); } }
+@keyframes rmk { to { transform: translateY(97px); } }
+@keyframes rnk { to { transform: translateY(131px); } }
+
+.rp {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: rip 2.6s ease-out infinite;
+}
+@keyframes rip {
+  0% { transform: scale(0.3); opacity: 0.95; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+
+.led {
+  animation: bl 2.4s steps(1) infinite;
+}
+@keyframes bl {
+  50% { opacity: 0.2; }
+}
+
+.fl {
+  stroke-dasharray: 5 9;
+  animation: fd 1s linear infinite;
+}
+@keyframes fd {
+  to { stroke-dashoffset: -14; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropf, .rf, .rm, .rn, .rp, .led, .fl { animation: none; }
 }
 
 @keyframes lx-bar-rise {
@@ -969,6 +1342,97 @@ label {
   animation: lx-bar-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+@keyframes lx-pulse-pass {
+  0% {
+    transform: translateX(0px);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(660px);
+    opacity: 0;
+  }
+}
+
+@keyframes lx-pulse-halt {
+  0% {
+    transform: translateX(0px);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  58% {
+    transform: translateX(305px);
+    opacity: 0.95;
+  }
+  74% {
+    transform: translateX(282px);
+    opacity: 0.45;
+  }
+  100% {
+    transform: translateX(276px);
+    opacity: 0;
+  }
+}
+
+.lx-pulse-pass {
+  animation: lx-pulse-pass 3.2s linear infinite;
+}
+
+.lx-pulse-halt {
+  animation: lx-pulse-halt 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@media (max-width: 1024px) {
+  .lx-rain-hero {
+    min-height: auto;
+    padding: 76px 0 24px;
+  }
+  .lx-hero-shell {
+    padding: 16px 20px 8px;
+    gap: 20px;
+  }
+  .lx-hero-split-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    min-height: auto;
+  }
+  .lx-hero-editorial-col {
+    max-width: 100%;
+  }
+  .lx-hero-stage-overlay {
+    min-height: 440px;
+    height: 440px;
+  }
+}
+
+@media (max-width: 768px) {
+  .lx-hero-shell {
+    padding: 12px 16px 8px;
+  }
+  .lx-hero-stage-overlay {
+    min-height: 380px;
+    height: 380px;
+  }
+  .lx-badge-callout.blocked {
+    left: 4px;
+    top: 40px;
+  }
+  .lx-badge-callout.allowed {
+    right: 4px;
+    top: 70px;
+  }
+  .lx-legend-card {
+    display: none;
+  }
+}
+
 @media (max-width: 900px) {
   .lx-expand-deck {
     flex-direction: column;
@@ -986,10 +1450,27 @@ label {
   .lx-hairline-hide-sm {
     display: none;
   }
-  .lx-gate-theater {
-    height: 185vh;
+  .lx-rain-hero {
+    min-height: auto;
+    align-items: flex-start;
+    padding: 88px 0 64px;
   }
-  .lx-gate-coffer {
+  .lx-rain-hero-inner {
+    padding: 0 20px;
+  }
+  .lx-rain-hero-copy {
+    max-width: 100%;
+  }
+  .lx-backend-hub {
+    max-width: 100%;
+    margin-top: 32px;
+    padding: 14px 16px;
+  }
+  .lx-backend-services-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .lx-finale-shutter {
     display: none;
   }
 }
@@ -999,7 +1480,10 @@ label {
   .lx-beam-flow,
   .lx-stage-enter,
   .lx-scroll-stem,
-  .lx-bar-rise {
+  .lx-bar-rise,
+  .lx-pulse-pass,
+  .lx-pulse-halt,
+  .lx-lock-pip {
     animation: none !important;
     opacity: 1 !important;
     filter: none !important;

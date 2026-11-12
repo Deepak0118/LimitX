@@ -1,5 +1,5 @@
-export default function BrandLogo({ size = 20, showWordmark = true, fontSize = '14.5px', dark = false }) {
-  const ink = dark ? '#F5F2EB' : '#1C1B18';
+export default function BrandLogo({ size = 22, showWordmark = true, fontSize = '18px', dark = false }) {
+  const ink = dark ? '#FAF8F5' : '#1C1B18';
   const accent = dark ? '#D46A5B' : '#A83B2B';
 
   return (
@@ -31,7 +31,7 @@ export default function BrandLogo({ size = 20, showWordmark = true, fontSize = '
           style={{
             fontFamily: 'var(--font-sans)',
             fontSize,
-            fontWeight: 600,
+            fontWeight: 650,
             letterSpacing: '-0.025em',
             color: ink,
           }}

@@ -120,12 +120,7 @@ export default function AlgorithmShowcase() {
               </button>
 
               {isOpen && (
-                <div
-                  className="lx-stage-enter"
-                  style={{
-                    padding: '4px 6px 26px',
-                  }}
-                >
+                <div className="lx-stage-enter" style={{ padding: '4px 6px 26px' }}>
                   <div
                     style={{
                       background: '#FBF9F5',
@@ -134,6 +129,112 @@ export default function AlgorithmShowcase() {
                       padding: '20px',
                     }}
                   >
+                    {/* Live Monochrome Pulse Gate Lane tying directly into the Vault concept */}
+                    <div
+                      style={{
+                        position: 'relative',
+                        height: '44px',
+                        background: '#F5F2EB',
+                        border: '1px solid #E5E1D8',
+                        borderRadius: '2px',
+                        marginBottom: '18px',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span
+                        style={{
+                          position: 'absolute',
+                          left: '12px',
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '10px',
+                          color: '#8C887F',
+                          zIndex: 2,
+                        }}
+                      >
+                        INCOMING
+                      </span>
+                      <span
+                        style={{
+                          position: 'absolute',
+                          right: '12px',
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '10px',
+                          color: '#1C1B18',
+                          zIndex: 2,
+                        }}
+                      >
+                        ORIGIN SAFE
+                      </span>
+
+                      {/* Center LimitX Gate Barrier */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: '50%',
+                          top: '6px',
+                          bottom: '6px',
+                          width: '2px',
+                          background: '#1C1B18',
+                          zIndex: 3,
+                        }}
+                      />
+                      <span
+                        style={{
+                          position: 'absolute',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          top: '2px',
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '9px',
+                          background: '#1C1B18',
+                          color: '#FBF9F5',
+                          padding: '1px 6px',
+                          borderRadius: '1px',
+                          zIndex: 4,
+                        }}
+                      >
+                        GATE
+                      </span>
+
+                      {/* Animated Allowed Pulses */}
+                      {[0, -1.1, -2.2].map((delay, idx) => (
+                        <span
+                          key={`pass-${idx}`}
+                          className="lx-pulse-pass"
+                          style={{
+                            position: 'absolute',
+                            left: '70px',
+                            width: '18px',
+                            height: '4px',
+                            borderRadius: '1px',
+                            background: '#1C1B18',
+                            animationDelay: `${delay}s`,
+                          }}
+                        />
+                      ))}
+
+                      {/* Under Spike: Excess Pulses Halt & Deflect at Gate Line */}
+                      {pattern === 'burst' &&
+                        [-0.3, -1.0, -1.7].map((delay, idx) => (
+                          <span
+                            key={`halt-${idx}`}
+                            className="lx-pulse-halt"
+                            style={{
+                              position: 'absolute',
+                              left: '70px',
+                              top: idx % 2 === 0 ? '13px' : '28px',
+                              width: '14px',
+                              height: '3px',
+                              borderRadius: '1px',
+                              background: '#8C887F',
+                              animationDelay: `${delay}s`,
+                            }}
+                          />
+                        ))}
+                    </div>
+
                     {/* Slim Full-Width Horizontal Traffic Strip */}
                     <svg
                       viewBox="0 0 740 84"

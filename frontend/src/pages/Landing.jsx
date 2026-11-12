@@ -1,9 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, Copy, ArrowRight } from 'lucide-react';
 import { PROXY_BASE } from '../api';
 import BrandLogo from '../components/BrandLogo';
-import HeroGateTheater from '../components/HeroGateTheater';
+import HeroPrecisionStage from '../components/HeroPrecisionStage';
 import WhyLimitXStage from '../components/WhyLimitXStage';
 import AlgorithmShowcase from '../components/AlgorithmShowcase';
 import ScrollRevealStage from '../components/ui/ScrollRevealStage';
@@ -13,7 +13,6 @@ const SAMPLE_PROXY_URL = `${PROXY_BASE}/proxy/api_7f3a9c12`;
 export default function Landing() {
   const [cutoverTab, setCutoverTab] = useState('env'); // 'flow' | 'env' | 'curl'
   const [copiedEnv, setCopiedEnv] = useState(false);
-  const [isDarkNav, setIsDarkNav] = useState(true);
 
   const envSnippet = `# Before\n- API_BASE_URL=https://api.example.com\n\n# After\n+ API_BASE_URL=${SAMPLE_PROXY_URL}`;
   const curlSnippet = `curl -i "${SAMPLE_PROXY_URL}/auth/login" \\\n  -X POST -H "Content-Type: application/json"`;
@@ -24,113 +23,170 @@ export default function Landing() {
     setTimeout(() => setCopiedEnv(false), 1500);
   };
 
-  const handleNavThemeChange = useCallback((dark) => {
-    setIsDarkNav(dark);
-  }, []);
-
   const scrollToSetup = (e) => {
     if (e) e.preventDefault();
-    const overview = document.getElementById('overview');
-    if (overview) {
-      const targetY = Math.max(0, overview.offsetHeight - window.innerHeight);
-      window.scrollTo({ top: targetY, behavior: 'smooth' });
+    const target = document.getElementById('integration');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
   return (
     <div style={{ minHeight: '100vh', background: '#F5F2EB', color: '#1C1B18' }}>
-      {/* Adaptive Editorial Sticky Navbar (Obsidian over Gate -> Warm Stone on Scroll) */}
+      {/* Permanent Fixed / Sticky Frosted Glass Top Navbar */}
       <header
         className="lx-nav"
         style={{
-          position: 'fixed',
+          position: 'sticky',
           top: 0,
           left: 0,
           right: 0,
           zIndex: 50,
-          background: isDarkNav ? 'rgba(20, 19, 17, 0.86)' : 'rgba(245, 242, 235, 0.94)',
-          borderBottom: isDarkNav ? '1px solid rgba(245, 242, 235, 0.12)' : '1px solid #DCD7CD',
+          background: 'rgba(245, 242, 235, 0.94)',
+          backdropFilter: 'blur(16px)',
+          borderBottom: '1px solid #DCD7CD',
           height: '68px',
-          transition: 'background-color 280ms ease, border-color 280ms ease',
+          display: 'flex',
+          alignItems: 'center',
         }}
       >
-        <div className="lx-nav-inner" style={{ maxWidth: '1200px' }}>
+        <div className="lx-nav-inner" style={{ maxWidth: '1360px', width: '100%', margin: '0 auto', padding: '0 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
-            <BrandLogo size={25} fontSize="18.5px" dark={isDarkNav} />
+            <BrandLogo size={26} fontSize="19px" dark={false} />
           </Link>
 
-          <nav className="lx-nav-links" aria-label="Landing navigation" style={{ gap: '26px' }}>
+          <nav className="lx-nav-links" aria-label="Landing navigation" style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
+            <a
+              href="#overview"
+              style={{
+                fontSize: '14.5px',
+                fontWeight: 500,
+                color: '#1C1B18',
+                textDecoration: 'none',
+                transition: 'opacity 160ms ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.65')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+            >
+              Product
+            </a>
             <a
               href="#integration"
               onClick={scrollToSetup}
               style={{
                 fontSize: '14.5px',
                 fontWeight: 500,
-                color: isDarkNav ? '#BDB7AB' : '#4A4843',
+                color: '#1C1B18',
                 textDecoration: 'none',
-                transition: 'color 260ms ease',
+                transition: 'opacity 160ms ease',
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.65')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
             >
-              Setup
+              How it Works
             </a>
             <a
               href="#why-limitx"
               style={{
                 fontSize: '14.5px',
                 fontWeight: 500,
-                color: isDarkNav ? '#BDB7AB' : '#4A4843',
+                color: '#1C1B18',
                 textDecoration: 'none',
-                transition: 'color 260ms ease',
+                transition: 'opacity 160ms ease',
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.65')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
             >
-              Why LimitX
+              Features
+            </a>
+            <a
+              href="#integration"
+              onClick={scrollToSetup}
+              style={{
+                fontSize: '14.5px',
+                fontWeight: 500,
+                color: '#1C1B18',
+                textDecoration: 'none',
+                transition: 'opacity 160ms ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.65')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+            >
+              Docs
             </a>
             <a
               href="#algorithms"
               style={{
                 fontSize: '14.5px',
                 fontWeight: 500,
-                color: isDarkNav ? '#BDB7AB' : '#4A4843',
+                color: '#1C1B18',
                 textDecoration: 'none',
-                transition: 'color 260ms ease',
+                transition: 'opacity 160ms ease',
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.65')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
             >
-              Modes
+              Algorithms
             </a>
             <Link
               to="/auth?mode=login"
               style={{
                 fontSize: '14.5px',
                 fontWeight: 500,
-                color: isDarkNav ? '#FBF9F5' : '#1C1B18',
+                color: '#1C1B18',
                 textDecoration: 'none',
-                transition: 'color 260ms ease',
               }}
             >
-              Sign in
+              Log in
             </Link>
             <Link
               to="/auth?mode=signup"
               style={{
-                padding: '8px 16px',
-                borderRadius: '2px',
-                background: isDarkNav ? '#FBF9F5' : '#1C1B18',
-                color: isDarkNav ? '#1C1B18' : '#FBF9F5',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 20px',
+                borderRadius: '999px',
+                background: '#1C1B18',
+                color: '#FAF8F5',
                 fontSize: '13.5px',
-                fontWeight: 500,
+                fontWeight: 600,
                 textDecoration: 'none',
-                transition: 'background-color 260ms ease, color 260ms ease',
+                transition: 'all 160ms ease',
+                boxShadow: '0 2px 10px rgba(28, 27, 24, 0.15)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#2E2B26';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#1C1B18';
+                e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
-              Get started
+              Get Started <ArrowRight size={13} />
             </Link>
           </nav>
         </div>
       </header>
 
-      {/* Band 1 + Band 2: Apple-Style Architectural Scroll Gate Opening Into 1-Step URL Swap */}
-      <HeroGateTheater onNavThemeChange={handleNavThemeChange} onOpenSetup={scrollToSetup}>
-        <div style={{ maxWidth: '820px', width: '100%', margin: '0 auto', textAlign: 'center' }}>
+      {/* Band 1: Precision Edge Gateway Hero Stage */}
+      <HeroPrecisionStage onOpenSetup={scrollToSetup} />
+
+      {/* Band 2: 1-Step URL Swap Integration Section */}
+      <section
+        id="integration"
+        style={{
+          background: '#F5F2EB',
+          backgroundImage: 'radial-gradient(#DCD7CD 1px, transparent 1px)',
+          backgroundSize: '22px 22px',
+          borderTop: '1px solid #DCD7CD',
+          padding: '104px 24px 96px',
+          scrollMarginTop: '68px',
+        }}
+      >
+        <ScrollRevealStage mode="rise">
+          <div style={{ maxWidth: '820px', width: '100%', margin: '0 auto', textAlign: 'center' }}>
           <h2 style={{ margin: '0 0 10px', fontSize: 'clamp(28px, 3.4vw, 40px)', fontWeight: 400, letterSpacing: '-0.025em', color: '#1C1B18' }}>
             Live in one URL swap.
           </h2>
@@ -244,8 +300,9 @@ export default function Landing() {
               )}
             </div>
           </div>
-        </div>
-      </HeroGateTheater>
+          </div>
+        </ScrollRevealStage>
+      </section>
 
       {/* Band 3: Apple-Style Expanding Horizontal Panels (Warm Limestone + Scroll Depth Rise) */}
       <section

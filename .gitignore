@@ -30,6 +30,7 @@ Thumbs.db
 
 # Local AI specs, notes & design exports (not for git)
 .kiro/
+scratch/
 design-preview.html
 design-reference.html
 design-reference.pdf
