@@ -613,6 +613,8 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
         width: '100%',
         minHeight: '840px',
         background: '#F5F2EB',
+        backgroundImage: 'radial-gradient(#DCD7CD 1px, transparent 1px)',
+        backgroundSize: '22px 22px',
         overflow: 'hidden',
         userSelect: 'none',
       }}
@@ -670,7 +672,7 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
           zIndex: 10,
           maxWidth: '1340px',
           margin: '0 auto',
-          padding: 'clamp(170px, 22vh, 230px) 24px 24px',
+          padding: 'clamp(150px, 20vh, 210px) 24px 24px',
           minHeight: '840px',
           display: 'flex',
           flexDirection: 'column',
@@ -678,6 +680,64 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
           pointerEvents: 'none',
         }}
       >
+        {/* Top Left Architecture Pill */}
+        <div
+          className="hidden sm:flex"
+          style={{
+            position: 'absolute',
+            top: '26px',
+            left: '28px',
+            background: 'rgba(251, 249, 245, 0.94)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid #DCD7CD',
+            borderRadius: '2px',
+            padding: '7px 12px',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '11px',
+            fontFamily: 'var(--font-mono, monospace)',
+            color: '#1C1B18',
+            boxShadow: '0 1px 4px rgba(28, 27, 24, 0.04)',
+            pointerEvents: 'auto',
+          }}
+        >
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#1C1B18' }} />
+          <span>&lt;0.6MS OVERHEAD</span>
+          <span style={{ color: '#8C887F' }}>•</span>
+          <span style={{ color: '#5F5C55' }}>ZERO CODE CHANGES</span>
+        </div>
+
+        {/* Top Right Live Traffic Legend */}
+        <div
+          className="hidden md:flex"
+          style={{
+            position: 'absolute',
+            top: '26px',
+            right: '28px',
+            background: 'rgba(251, 249, 245, 0.94)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid #DCD7CD',
+            borderRadius: '2px',
+            padding: '8px 14px',
+            flexDirection: 'column',
+            gap: '5px',
+            fontSize: '10.5px',
+            fontFamily: 'var(--font-mono, monospace)',
+            color: '#4A4843',
+            boxShadow: '0 1px 4px rgba(28, 27, 24, 0.04)',
+            pointerEvents: 'auto',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#1C1B18' }} />
+            <span>Legitimate (200 OK)</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#A83B2B' }} />
+            <span>Throttled (429 Drop)</span>
+          </div>
+        </div>
+
         {/* EDITORIAL HEADLINE BAY — ANCHORED JUST ABOVE THE OZONE ARC */}
         <div
           style={{
@@ -691,7 +751,7 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
           <h1
             style={{
               fontFamily: '"Plus Jakarta Sans", var(--font-sans), -apple-system, sans-serif',
-              fontSize: 'clamp(50px, 6.4vw, 76px)',
+              fontSize: 'clamp(48px, 6.2vw, 74px)',
               fontWeight: 700,
               lineHeight: 1.05,
               letterSpacing: '-0.035em',
@@ -699,12 +759,26 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
               background: 'linear-gradient(180deg, #1C1B18 20%, #443E36 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              margin: '0 auto 26px',
+              margin: '0 auto 12px',
               textAlign: 'center',
             }}
           >
             Rate Limiter
           </h1>
+
+          {/* Clean User-POV Subtitle */}
+          <p
+            style={{
+              margin: '0 auto 24px',
+              fontSize: 'clamp(15px, 1.6vw, 17px)',
+              color: '#5F5C55',
+              maxWidth: '540px',
+              lineHeight: 1.55,
+              textAlign: 'center',
+            }}
+          >
+            Stop traffic spikes and abusive bursts before they reach your origin.
+          </p>
 
           {/* Action CTAs in Warm Limestone & Ivory Palette */}
           <div

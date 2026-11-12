@@ -145,15 +145,15 @@ export default function Landing() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '8px 20px',
-                borderRadius: '999px',
+                padding: '8px 18px',
+                borderRadius: '2px',
                 background: '#1C1B18',
                 color: '#FAF8F5',
                 fontSize: '13.5px',
-                fontWeight: 600,
+                fontWeight: 500,
                 textDecoration: 'none',
                 transition: 'all 160ms ease',
-                boxShadow: '0 2px 10px rgba(28, 27, 24, 0.15)',
+                boxShadow: '0 2px 8px rgba(28, 27, 24, 0.12)',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = '#2E2B26';
