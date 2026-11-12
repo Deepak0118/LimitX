@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Algorithm {
+  token_bucket
+  fixed_window
+  sliding_window
+}
+
+enum Identifier {
+  ip
+  header
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String?   @map("password_hash")
+  googleId     String?   @unique @map("google_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  projects     Project[]
+
+  @@map("users")
+}
+
+model Project {
+  id          String   @id
+  name        String
+  description String?
+  ownerId     Int      @map("owner_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  apis        Api[]
+
+  @@index([ownerId])
+  @@map("projects")
+}
+
+model Api {
+  id          String      @id
+  projectId   String      @map("project_id")
+  name        String
+  targetUrl   String      @map("target_url")
+  description String?
+  status      ApiStatus   @default(active)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  rules       Rule[]
+  requestLogs RequestLog[]
+
+  @@index([projectId])
+  @@map("apis")
+}
+
+enum ApiStatus {
+  active
+  paused
+}
+
+model Rule {
+  id         Int        @id @default(autoincrement())
+  apiId      String     @map("api_id")
+  path       String // "/api/login", "/api/*" or "*"
+  limit      Int        @map("limit_count")
+  windowSec  Int        @map("window_sec")
+  algorithm  Algorithm  @default(token_bucket)
+  identifier Identifier
+  headerName String?    @map("header_name")
+  failClosed Boolean    @default(false) @map("fail_closed") // true = 503 when Redis is down
+  api        Api        @relation(fields: [apiId], references: [id], onDelete: Cascade)
+
+  @@unique([apiId, path])
+  @@index([apiId])
+  @@map("rules")
+}
+
+// No relation on purpose: logs are written in batches and must never fail because an API was deleted.
+model RequestLog {
+  id         BigInt   @id @default(autoincrement())
+  apiId      String?  @map("api_id")
+  path       String
+  identifier String // hashed / prefixed, never a raw secret
+  ip         String
+  allowed    Boolean
+  reason     String // allowed | rate_limited | blocklisted | ...
+  createdAt  DateTime @default(now()) @map("created_at")
+  api        Api?     @relation(fields: [apiId], references: [id], onDelete: SetNull)
+
+  @@index([apiId, createdAt(sort: Desc)])
+  @@map("request_logs")
+}
