@@ -1,0 +1,10 @@
+{
+  "name": "novastore-demo-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Zero-dependency demo target application (Landing, Login, Orders) for testing LimitX Rate Limiter Proxy",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

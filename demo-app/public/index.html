@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaStore — LimitX Demo Target App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Archivo', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #FAFAFA;
+      color: #09090B;
+      line-height: 1.5;
+    }
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+    .container { max-width: 1120px; margin: 0 auto; padding: 24px 20px 64px; }
+
+    /* Top Gateway Bar */
+    .gw-bar {
+      background: #09090B;
+      color: #FAFAFA;
+      border-bottom: 1px solid #27272A;
+      padding: 14px 20px;
+    }
+    .gw-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .gw-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .pill-direct { background: #451A03; color: #FCD34D; border: 1px solid #B45309; }
+    .pill-proxy { background: #064E3B; color: #6EE7B7; border: 1px solid #059669; }
+    .pill-hits { background: #18181B; color: #E4E4E7; border: 1px solid #3F3F46; }
+
+    .gw-input {
+      background: #18181B;
+      border: 1px solid #3F3F46;
+      color: #FAFAFA;
+      padding: 6px 10px;
+      border-radius: 5px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      width: 165px;
+    }
+    .gw-input:focus { outline: none; border-color: #10B981; }
+
+    .btn-toggle {
+      padding: 6px 12px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid #3F3F46;
+      background: #27272A;
+      color: #E4E4E7;
+      cursor: pointer;
+    }
+    .btn-toggle.active { background: #FAFAFA; color: #09090B; border-color: #FAFAFA; }
+
+    /* App Header & Nav */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #E4E4E7;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+    .tabs { display: flex; gap: 6px; }
+    .tab {
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid #D4D4D8;
+      background: #FFFFFF;
+      color: #52525B;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .tab.active { background: #09090B; color: #FFFFFF; border-color: #09090B; }
+
+    /* Code Banner showing exact developer BASE_URL */
+    .code-banner {
+      background: #FFFFFF;
+      border: 1px solid #D4D4D8;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    /* Cards & Grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+    .card {
+      background: #FFFFFF;
+      border: 1px solid #D4D4D8;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .btn {
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid #09090B;
+      background: #09090B;
+      color: #FFFFFF;
+      cursor: pointer;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn-sec { background: #FFFFFF; color: #09090B; border-color: #D4D4D8; }
+    .btn-danger { background: #B91C1C; border-color: #B91C1C; color: #FFFFFF; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #3F3F46; }
+    input.field {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #D4D4D8;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 14px;
+    }
+
+    /* Inspector Logs */
+    .inspector {
+      margin-top: 32px;
+      background: #FFFFFF;
+      border: 1px solid #D4D4D8;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .inspector-head {
+      padding: 12px 16px;
+      background: #F4F4F5;
+      border-bottom: 1px solid #E4E4E7;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .log-list { max-height: 300px; overflow-y: auto; }
+    .log-row {
+      display: grid;
+      grid-template-columns: 70px 1fr 220px 80px;
+      gap: 12px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #F4F4F5;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      align-items: center;
+    }
+    @media (max-width: 720px) {
+      .log-row { grid-template-columns: 60px 1fr; }
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 11px;
+      text-align: center;
+    }
+    .b-200 { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+    .b-401 { background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+    .b-429 { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+    .b-err { background: #F4F4F5; color: #3F3F46; border: 1px solid #D4D4D8; }
+  </style>
+</head>
+<body>
+
+  <!-- Developer Routing Switcher Bar -->
+  <div class="gw-bar">
+    <div class="gw-inner">
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <span id="mode-pill" class="pill pill-direct">MODE: DIRECT (NO LIMITX)</span>
+        <span class="pill pill-hits">REAL SERVER HITS: <span id="origin-hits">0</span></span>
+      </div>
+
+      <div class="gw-controls">
+        <button id="btn-direct" class="btn-toggle active" onclick="setMode('direct')">Direct (:4001)</button>
+        <button id="btn-proxy" class="btn-toggle" onclick="setMode('proxy')">Via LimitX (:3000)</button>
+        <input id="api-id-input" class="gw-input" style="width:240px;" placeholder="api_xxxx or full proxy URL" title="Paste your LimitX API ID or full Proxy URL" oninput="updateApiId(this.value)" />
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- App Nav -->
+    <div class="nav">
+      <div class="brand">
+        <span>NOVASTORE</span>
+        <span class="mono" style="font-size:11px; color:#636366; font-weight:500;">DEMO CLIENT (:4001)</span>
+      </div>
+      <div class="tabs">
+        <button class="tab active" id="tab-home" onclick="switchView('home')">1. Landing</button>
+        <button class="tab" id="tab-login" onclick="switchView('login')">2. Login</button>
+        <button class="tab" id="tab-orders" onclick="switchView('orders')">3. Orders</button>
+      </div>
+    </div>
+
+    <!-- Exact BASE_URL developer config banner -->
+    <div class="code-banner">
+      <div>
+        <div class="mono" style="font-size:11px; color:#636366; margin-bottom:2px;">FRONTEND JS BASE_URL CONFIG</div>
+        <div class="mono" style="font-size:13px; font-weight:600;">
+          const BASE_URL = "<span id="live-base-url" style="color:#047857;">http://localhost:4001</span>";
+        </div>
+      </div>
+      <div id="auth-status-pill" class="mono" style="font-size:12px; color:#636366;">
+        Session: Guest (No Token)
+      </div>
+    </div>
+
+    <!-- VIEW 1: LANDING -->
+    <div id="view-home">
+      <div class="card" style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div>
+          <h1 style="margin:0 0 6px; font-size:26px; letter-spacing:-0.02em;">Storefront Landing Page</h1>
+          <p style="margin:0; color:#52525B; font-size:14px;">
+            Public catalog fetched from <span class="mono">/api/products</span>. Test public IP rate limits or burst spikes here.
+          </p>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-sec" onclick="loadProducts()">Refresh Catalog</button>
+          <button class="btn" onclick="burstProducts()">Burst Test (15x GET)</button>
+        </div>
+      </div>
+
+      <div id="products-grid" class="grid"></div>
+    </div>
+
+    <!-- VIEW 2: LOGIN -->
+    <div id="view-login" style="display:none;">
+      <div style="max-width:460px; margin:0 auto;" class="card">
+        <h2 style="margin:0 0 6px; font-size:22px;">Account Login</h2>
+        <p style="margin:0 0 18px; font-size:13px; color:#52525B;">
+          Unauthenticated route (<span class="mono">POST /api/auth/login</span>). Ideal for testing <strong>Sliding Window + IP Limit</strong>.
+        </p>
+
+        <form onsubmit="handleLogin(event)">
+          <label>Email</label>
+          <input class="field" id="login-email" type="email" value="shiva@demo.com" required />
+
+          <label>Password <span class="mono" style="color:#636366;">(demo: limitx123)</span></label>
+          <input class="field" id="login-pass" type="password" value="limitx123" required />
+
+          <div id="login-msg" class="mono" style="font-size:12px; margin-bottom:12px; min-height:18px;"></div>
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="submit" class="btn" style="flex:1;">Sign In</button>
+            <button type="button" class="btn btn-danger" onclick="bruteForceLogin()">Brute-Force Test (10x Wrong)</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- VIEW 3: ORDERS -->
+    <div id="view-orders" style="display:none;">
+      <div class="card" style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2 style="margin:0 0 4px; font-size:22px;">My Orders (Protected Route)</h2>
+          <p style="margin:0; font-size:13px; color:#52525B;">
+            Sends <span class="mono">Authorization: Bearer &lt;token&gt;</span> to <span class="mono">/api/orders</span>. Ideal for <strong>Header-Based Rate Limiting</strong>.
+          </p>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-sec" onclick="loadOrders()">Fetch Orders</button>
+          <button class="btn" onclick="placeOrder('Arena Tournament Pass', 25)">+ Place Order ($25)</button>
+          <button class="btn btn-danger" onclick="spamOrders()">Spam Orders API (15x)</button>
+          <button class="btn btn-sec" onclick="switchUserToken()">Switch Token (User 2)</button>
+          <button class="btn btn-sec" onclick="logout()">Logout</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div id="orders-body" style="font-size:14px; color:#52525B;">Click "Fetch Orders" to load orders.</div>
+      </div>
+    </div>
+
+    <!-- LIVE INSPECTOR LOGS -->
+    <div class="inspector">
+      <div class="inspector-head">
+        <span class="mono" style="font-size:12px; font-weight:600;">LIVE HTTP RESPONSE INSPECTOR (FROM BROWSER)</span>
+        <button class="btn btn-sec" style="padding:4px 10px; font-size:11px;" onclick="clearLogs()">Clear</button>
+      </div>
+      <div id="log-list" class="log-list">
+        <div style="padding:20px; text-align:center; font-size:13px; color:#71717A;">
+          No requests sent yet. Try refreshing catalog, logging in, or clicking a Burst Test button.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ORIGIN_URL = 'http://localhost:4001';
+    const LIMITX_HOST = 'http://localhost:3000';
+
+    let mode = localStorage.getItem('nova_mode') || 'direct';
+    let apiId = localStorage.getItem('nova_api_id') || '';
+    let authToken = localStorage.getItem('nova_token') || '';
+    let authUser = localStorage.getItem('nova_user') || '';
+    let logs = [];
+
+    document.getElementById('api-id-input').value = apiId;
+
+    function getBaseUrl() {
+      const val = apiId.trim().replace(/\/+$/, '');
+      if (mode === 'proxy' && val) {
+        if (/^https?:\/\//i.test(val)) return val;
+        if (val.startsWith('/proxy/')) return `${LIMITX_HOST}${val}`;
+        if (val.startsWith('proxy/')) return `${LIMITX_HOST}/${val}`;
+        return `${LIMITX_HOST}/proxy/${val}`;
+      }
+      return ORIGIN_URL;
+    }
+
+    function renderGatewayBar() {
+      const baseUrl = getBaseUrl();
+      document.getElementById('live-base-url').textContent = baseUrl;
+      document.getElementById('btn-direct').classList.toggle('active', mode === 'direct');
+      document.getElementById('btn-proxy').classList.toggle('active', mode === 'proxy');
+
+      const pill = document.getElementById('mode-pill');
+      if (mode === 'proxy') {
+        if (!apiId.trim()) {
+          pill.textContent = 'PASTE API_ID TO ROUTE VIA LIMITX';
+          pill.className = 'pill pill-direct';
+        } else {
+          pill.textContent = 'MODE: PROTECTED BY LIMITX';
+          pill.className = 'pill pill-proxy';
+        }
+      } else {
+        pill.textContent = 'MODE: DIRECT ORIGIN (NO LIMITX)';
+        pill.className = 'pill pill-direct';
+      }
+
+      const authPill = document.getElementById('auth-status-pill');
+      authPill.innerHTML = authToken
+        ? `Session: <strong style="color:#047857;">${authUser}</strong> (<span title="${authToken}">Token: ${authToken.slice(0, 12)}...</span>)`
+        : 'Session: Guest (No Token)';
+    }
+
+    function setMode(next) {
+      mode = next;
+      localStorage.setItem('nova_mode', mode);
+      renderGatewayBar();
+    }
+
+    function updateApiId(val) {
+      apiId = val.trim();
+      localStorage.setItem('nova_api_id', apiId);
+      if (apiId && mode === 'direct') {
+        setMode('proxy');
+      } else {
+        renderGatewayBar();
+      }
+    }
+
+    function switchView(view) {
+      ['home', 'login', 'orders'].forEach(v => {
+        document.getElementById('view-' + v).style.display = v === view ? 'block' : 'none';
+        document.getElementById('tab-' + v).classList.toggle('active', v === view);
+      });
+      if (view === 'orders' && authToken) loadOrders();
+    }
+
+    function pushLog(method, url, status, headers, ms) {
+      const limit = headers.get('X-RateLimit-Limit');
+      const rem = headers.get('X-RateLimit-Remaining');
+      const retry = headers.get('Retry-After');
+      let meta = limit !== null ? `Quota: ${rem}/${limit}` : 'No Limit Header';
+      if (status === 429 && retry) meta = `BLOCKED · Retry-After: ${retry}s`;
+      if (status === 403) meta = 'IP BLOCKLISTED';
+      logs.unshift({ method, url, status, meta, ms });
+      if (logs.length > 60) logs.pop();
+      renderLogs();
+    }
+
+    function renderLogs() {
+      const el = document.getElementById('log-list');
+      if (logs.length === 0) {
+        el.innerHTML = '<div style="padding:20px;text-align:center;font-size:13px;color:#71717A;">Logs cleared.</div>';
+        return;
+      }
+      el.innerHTML = logs.map(l => {
+        let cls = 'b-err';
+        if (l.status >= 200 && l.status < 300) cls = 'b-200';
+        else if (l.status === 401) cls = 'b-401';
+        else if (l.status === 429 || l.status === 403) cls = 'b-429';
+        return `
+          <div class="log-row">
+            <span class="badge ${cls}">${l.status}</span>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.method} ${l.url}</span>
+            <span style="color:#52525B;">${l.meta}</span>
+            <span style="text-align:right;color:#71717A;">${l.ms} ms</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function clearLogs() {
+      logs = [];
+      renderLogs();
+    }
+
+    async function callApi(path, { method = 'GET', body } = {}) {
+      const url = getBaseUrl() + path;
+      const start = performance.now();
+      const headers = {};
+      if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+      if (body) headers['Content-Type'] = 'application/json';
+
+      try {
+        const res = await fetch(url, {
+          method,
+          headers,
+          body: body ? JSON.stringify(body) : undefined,
+        });
+        const ms = Math.round(performance.now() - start);
+        pushLog(method, url, res.status, res.headers, ms);
+        const data = await res.json().catch(() => ({}));
+        refreshOriginHits();
+        return { ok: res.ok, status: res.status, data };
+      } catch (err) {
+        const ms = Math.round(performance.now() - start);
+        pushLog(method, url, 'ERR', new Headers(), ms);
+        return { ok: false, status: 0, data: { error: err.message } };
+      }
+    }
+
+    async function refreshOriginHits() {
+      try {
+        const res = await fetch(ORIGIN_URL + '/api/health');
+        const data = await res.json();
+        document.getElementById('origin-hits').textContent = data.originHits;
+      } catch {}
+    }
+
+    // --- Landing / Products ---
+    async function loadProducts() {
+      const r = await callApi('/api/products');
+      const grid = document.getElementById('products-grid');
+      if (r.ok && r.data.products) {
+        grid.innerHTML = r.data.products.map(p => `
+          <div class="card">
+            <div class="mono" style="font-size:11px; color:#636366; margin-bottom:6px;">${p.category}</div>
+            <div style="font-size:16px; font-weight:700; margin-bottom:8px;">${p.name}</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
+              <span class="mono" style="font-weight:600; font-size:15px;">$${p.price}</span>
+              <button class="btn btn-sec" style="padding:6px 10px; font-size:12px;" onclick="quickBuy('${p.name}', ${p.price})">Order</button>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        grid.innerHTML = `<div class="card" style="grid-column:1/-1; color:#B91C1C;">Request blocked or failed (${r.status}): ${r.data.error || 'Error'}</div>`;
+      }
+    }
+
+    async function burstProducts() {
+      await Promise.all(Array.from({ length: 15 }, () => callApi('/api/products')));
+    }
+
+    function quickBuy(item, price) {
+      if (!authToken) {
+        switchView('login');
+        document.getElementById('login-msg').innerHTML = '<span style="color:#B45309;">Please sign in first to place an order.</span>';
+        return;
+      }
+      switchView('orders');
+      placeOrder(item, price);
+    }
+
+    // --- Login ---
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-pass').value;
+      const msgEl = document.getElementById('login-msg');
+      msgEl.textContent = 'Authenticating...';
+
+      const r = await callApi('/api/auth/login', { method: 'POST', body: { email, password } });
+      if (r.ok && r.data.token) {
+        authToken = r.data.token;
+        authUser = r.data.user.email;
+        localStorage.setItem('nova_token', authToken);
+        localStorage.setItem('nova_user', authUser);
+        msgEl.innerHTML = '<span style="color:#047857;">Logged in! Switching to Orders...</span>';
+        renderGatewayBar();
+        setTimeout(() => switchView('orders'), 600);
+      } else {
+        msgEl.innerHTML = `<span style="color:#B91C1C;">[${r.status}] ${r.data.error || 'Login failed'}</span>`;
+      }
+    }
+
+    async function bruteForceLogin() {
+      const email = document.getElementById('login-email').value;
+      const msgEl = document.getElementById('login-msg');
+      msgEl.textContent = 'Running 10 rapid wrong-password attempts...';
+      let blocked = 0;
+      for (let i = 1; i <= 10; i++) {
+        const r = await callApi('/api/auth/login', {
+          method: 'POST',
+          body: { email, password: 'wrong_guess_' + i },
+        });
+        if (r.status === 429) blocked++;
+      }
+      msgEl.innerHTML = blocked > 0
+        ? `<span style="color:#047857;">LimitX stopped ${blocked}/10 brute-force attempts with 429!</span>`
+        : `<span style="color:#B45309;">0 attempts rate-limited (Switch to LimitX Mode & configure /api/auth/login route!).</span>`;
+    }
+
+    // --- Orders ---
+    async function loadOrders() {
+      const r = await callApi('/api/orders');
+      const el = document.getElementById('orders-body');
+      if (r.ok && r.data.orders) {
+        el.innerHTML = r.data.orders.map(o => `
+          <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #F4F4F5;">
+            <div>
+              <strong class="mono">${o.id}</strong> — ${o.item}
+            </div>
+            <div class="mono">
+              <span style="color:#047857; font-weight:600;">${o.status}</span> · $${o.amount}
+            </div>
+          </div>
+        `).join('');
+      } else {
+        el.innerHTML = `<span style="color:#B91C1C;">[${r.status}] ${r.data.error || 'Could not load orders'}</span>`;
+      }
+    }
+
+    async function placeOrder(item, amount) {
+      const r = await callApi('/api/orders', { method: 'POST', body: { item, amount } });
+      if (r.ok) {
+        loadOrders();
+      } else {
+        document.getElementById('orders-body').innerHTML =
+          `<span style="color:#B91C1C;">[${r.status}] ${r.data.error || 'Order failed'}</span>`;
+      }
+    }
+
+    async function spamOrders() {
+      await Promise.all(Array.from({ length: 15 }, () => callApi('/api/orders')));
+    }
+
+    // Mint a fresh valid token directly from origin so we can test a second Bearer bucket on the same IP
+    async function switchUserToken() {
+      const ordersEl = document.getElementById('orders-body');
+      try {
+        const res = await fetch(window.location.origin + '/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'shiva@demo.com', password: 'limitx123' }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.token) {
+          ordersEl.innerHTML = `<span style="color:#B91C1C;">Could not switch token: ${data.error || res.status}</span>`;
+          return;
+        }
+        authToken = data.token;
+        authUser = (data.user && data.user.email) ? `${data.user.email} (User 2 Token)` : 'User 2 Token';
+        localStorage.setItem('nova_token', authToken);
+        localStorage.setItem('nova_user', authUser);
+        renderGatewayBar();
+
+        logs.unshift({
+          method: 'AUTH',
+          url: '[TOKEN SWITCHED] Same IP, New Bearer Header',
+          status: 200,
+          meta: `Bearer: ${authToken.slice(0, 12)}...`,
+          ms: 0,
+        });
+        if (logs.length > 60) logs.pop();
+        renderLogs();
+
+        await loadOrders();
+      } catch (err) {
+        ordersEl.innerHTML = `<span style="color:#B91C1C;">Token switch failed: ${err.message}</span>`;
+      }
+    }
+
+    function logout() {
+      authToken = '';
+      authUser = '';
+      localStorage.removeItem('nova_token');
+      localStorage.removeItem('nova_user');
+      renderGatewayBar();
+      switchView('login');
+    }
+
+    // Boot
+    renderGatewayBar();
+    loadProducts();
+    refreshOriginHits();
+  </script>
+</body>
+</html>
