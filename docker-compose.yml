@@ -1,0 +1,15 @@
+# Local Redis + Postgres for development. Start with: docker compose up -d
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: limitx
+      POSTGRES_PASSWORD: limitx
+      POSTGRES_DB: limitx
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+volumes:
+  pgdata:
