@@ -1,14 +1,20 @@
 import { useState } from 'react';
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, Cpu, ShieldCheck, Zap } from 'lucide-react';
 
 const MODES = [
   {
     id: 'token_bucket',
     name: 'Token Bucket',
-    tagline: 'Lets normal bursts through, smooths heavy floods',
-    bestFor: 'Mobile & public REST APIs',
-    onSpike: 'Absorbs short burst, then paces',
-    experience: 'Smooth for real users',
+    badge: 'DEFAULT FOR REST APIS',
+    complexity: 'O(1) memory · Burst tolerant',
+    tagline: 'Absorbs natural user bursts, paces sustained traffic floods',
+    bestFor: 'Mobile apps, SPAs & public REST endpoints',
+    bestForDesc: 'Perfect for unpredictable client activity where users occasionally fire bursts of parallel calls.',
+    onSpike: 'Absorbs spikes up to bucket capacity, smoothly meters remainder',
+    onSpikeDesc: 'Tokens refill at a constant configured rate; excess requests are metered without jitter.',
+    experience: 'Smooth & forgiving for real users, zero false-positive drops',
+    experienceDesc: 'Returns standard 200 OK during bursts, only emits 429 when bucket is completely starved.',
+    headerSpec: 'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset',
     steadyBars: [3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4],
     burstBars: [5, 5, 4, 2, 3, 4, 3, 3, 4, 3, 3, 4],
     cappedIdxBurst: [2, 3],
@@ -16,10 +22,16 @@ const MODES = [
   {
     id: 'fixed_window',
     name: 'Fixed Window',
-    tagline: 'Simple hard cap per minute or hour',
-    bestFor: 'Free tiers & API key plans',
-    onSpike: 'Blocks extra calls until clock resets',
-    experience: 'Predictable Retry-After',
+    badge: 'TIERED BILLING & QUOTAS',
+    complexity: 'O(1) CPU · Hard epoch resets',
+    tagline: 'Predictable hard quota reset per minute, hour, or day',
+    bestFor: 'Subscription tiers, usage-based billing & API key plans',
+    bestForDesc: 'Deterministic rate windows aligned directly with customer quotas and billing cycles.',
+    onSpike: 'Strictly blocks excess calls until next time-window tick',
+    onSpikeDesc: 'Instantly cuts traffic when request count exceeds cap; resets cleanly on the clock boundary.',
+    experience: 'Deterministic 429 response with exact Retry-After header',
+    experienceDesc: 'Clients receive precision epoch timestamps telling their HTTP client exactly when to resume.',
+    headerSpec: 'Retry-After: <seconds>, X-RateLimit-Reset: <timestamp>',
     steadyBars: [3, 4, 2, 4, 3, 4, 2, 3, 4, 3, 2, 4],
     burstBars: [2, 5, 5, 2, 1, 5, 4, 2, 3, 5, 4, 2],
     cappedIdxBurst: [1, 2, 5, 9],
@@ -27,15 +39,23 @@ const MODES = [
   {
     id: 'sliding_window',
     name: 'Sliding Window',
-    tagline: 'No loopholes across window reset boundaries',
-    bestFor: 'Login, OTP & checkout routes',
-    onSpike: 'Stops boundary double-spikes immediately',
-    experience: 'Strictest brute-force guard',
+    badge: 'STRICT AUTH & BRUTE-FORCE DEFENSE',
+    complexity: 'O(log N) · Rolling precision',
+    tagline: 'Zero double-burst loopholes across boundary reset edges',
+    bestFor: 'Authentication, OTP delivery, AI chat & checkout routes',
+    bestForDesc: 'Prevents edge attackers from sending 2x the limit across minute boundaries (:59 and :00).',
+    onSpike: 'Calculates rolling request weight over rolling 60-second window',
+    onSpikeDesc: 'Smoothly interpolates traffic density across previous and current time frames.',
+    experience: 'Strictest defense against brute-force and credential stuffing',
+    experienceDesc: 'Eliminates boundary exploitation completely while maintaining smooth legitimate throughput.',
+    headerSpec: 'X-RateLimit-Policy: sliding-window-rolling-60s',
     steadyBars: [3, 3, 4, 3, 3, 4, 3, 3, 4, 3, 3, 3],
     burstBars: [4, 4, 2, 2, 4, 3, 3, 3, 4, 2, 3, 3],
     cappedIdxBurst: [2, 3, 9],
   },
 ];
+
+const TIME_MARKS = ['00s', '05s', '10s', '15s', '20s', '25s', '30s', '35s', '40s', '45s', '50s', '55s'];
 
 export default function AlgorithmShowcase() {
   const [openId, setOpenId] = useState('token_bucket');
@@ -43,27 +63,78 @@ export default function AlgorithmShowcase() {
 
   return (
     <div>
-      {/* Inline Profile Switcher */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-        <div className="lx-seg" role="group" aria-label="Traffic profile">
+      {/* Sleek Segmented Traffic Profile Switcher */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span
+            style={{
+              fontFamily: 'var(--font-mono, monospace)',
+              fontSize: '11px',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              color: '#8C887F',
+            }}
+          >
+            SIMULATION STREAM
+          </span>
+          <span style={{ fontSize: '12px', color: '#B5AFA4' }}>•</span>
+          <span style={{ fontSize: '12.5px', color: '#5F5C55' }}>
+            Toggle traffic pattern to test gate throttling
+          </span>
+        </div>
+
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            background: '#E6E2D9',
+            border: '1px solid #DCD7CD',
+            borderRadius: '3px',
+            padding: '2px',
+            gap: '2px',
+          }}
+          role="group"
+          aria-label="Traffic profile switcher"
+        >
           <button
             type="button"
             onClick={() => setPattern('steady')}
-            className={`lx-seg-btn ${pattern === 'steady' ? 'active' : ''}`}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '2px',
+              border: pattern === 'steady' ? '1px solid #DCD7CD' : '1px solid transparent',
+              background: pattern === 'steady' ? '#FBF9F5' : 'transparent',
+              color: pattern === 'steady' ? '#1C1B18' : '#5F5C55',
+              fontSize: '12px',
+              fontWeight: pattern === 'steady' ? 600 : 500,
+              cursor: 'pointer',
+              transition: 'all 140ms ease',
+            }}
           >
-            Steady traffic
+            Steady Traffic
           </button>
           <button
             type="button"
             onClick={() => setPattern('burst')}
-            className={`lx-seg-btn ${pattern === 'burst' ? 'active' : ''}`}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '2px',
+              border: pattern === 'burst' ? '1px solid #DCD7CD' : '1px solid transparent',
+              background: pattern === 'burst' ? '#FBF9F5' : 'transparent',
+              color: pattern === 'burst' ? '#1C1B18' : '#5F5C55',
+              fontSize: '12px',
+              fontWeight: pattern === 'burst' ? 600 : 500,
+              cursor: 'pointer',
+              transition: 'all 140ms ease',
+            }}
           >
-            Sudden spike
+            Sudden Burst (Spike)
           </button>
         </div>
       </div>
 
-      {/* Linear / Swiss Hairline Expandable Index */}
+      {/* Swiss Hairline Expandable Index */}
       <div>
         {MODES.map((mode) => {
           const isOpen = mode.id === openId;
@@ -76,68 +147,111 @@ export default function AlgorithmShowcase() {
                 type="button"
                 onClick={() => setOpenId(isOpen ? null : mode.id)}
                 className="lx-hairline-trigger"
+                style={{
+                  width: '100%',
+                  background: 'transparent',
+                  border: 'none',
+                  padding: '22px 6px',
+                  display: 'grid',
+                  gridTemplateColumns: 'minmax(200px, 1.2fr) minmax(0, 1.6fr) auto auto',
+                  alignItems: 'center',
+                  gap: '20px',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                }}
                 aria-expanded={isOpen}
               >
-                <span style={{ fontSize: '18px', fontWeight: 500, color: '#1C1B18', letterSpacing: '-0.015em' }}>
-                  {mode.name}
-                </span>
+                {/* Algorithm Name + Category Badge */}
+                <div>
+                  <div
+                    style={{
+                      fontFamily: '"Plus Jakarta Sans", var(--font-sans), sans-serif',
+                      fontSize: '18px',
+                      fontWeight: 650,
+                      color: '#1C1B18',
+                      letterSpacing: '-0.02em',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    {mode.name}
+                  </div>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono, monospace)',
+                      fontSize: '9.5px',
+                      fontWeight: 700,
+                      letterSpacing: '0.06em',
+                      color: '#8C887F',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {mode.badge}
+                  </span>
+                </div>
 
-                <span className="lx-hairline-hide-sm" style={{ fontSize: '14.5px', color: '#4A4843' }}>
+                {/* Subtitle Tagline */}
+                <span className="lx-hairline-hide-sm" style={{ fontSize: '14px', color: '#5F5C55', lineHeight: 1.45 }}>
                   {mode.tagline}
                 </span>
 
+                {/* Technical Complexity Pill */}
                 <span
                   className="lx-hairline-hide-sm"
                   style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '11.5px',
-                    padding: '4px 10px',
-                    background: '#EBE7DE',
+                    fontFamily: 'var(--font-mono, monospace)',
+                    fontSize: '11px',
+                    padding: '5px 10px',
+                    background: '#FBF9F5',
                     border: '1px solid #DCD7CD',
                     borderRadius: '2px',
-                    color: '#4A4843',
+                    color: '#1C1B18',
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {mode.bestFor}
+                  {mode.complexity}
                 </span>
 
+                {/* Plus / Minus Expand Icon */}
                 <span
                   style={{
-                    width: '28px',
-                    height: '28px',
+                    width: '32px',
+                    height: '32px',
                     borderRadius: '2px',
-                    border: '1px solid #C9C3B7',
+                    border: '1px solid #DCD7CD',
                     background: isOpen ? '#1C1B18' : '#FBF9F5',
-                    color: isOpen ? '#FBF9F5' : '#1C1B18',
+                    color: isOpen ? '#FAF8F5' : '#1C1B18',
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    transition: 'all 160ms ease',
+                    flexShrink: 0,
                   }}
                 >
                   {isOpen ? <Minus size={14} /> : <Plus size={14} />}
                 </span>
               </button>
 
+              {/* Expanded Behaviour Visualizer */}
               {isOpen && (
-                <div className="lx-stage-enter" style={{ padding: '4px 6px 26px' }}>
+                <div className="lx-stage-enter" style={{ padding: '4px 0 32px' }}>
                   <div
                     style={{
                       background: '#FBF9F5',
                       border: '1px solid #DCD7CD',
-                      borderRadius: '2px',
-                      padding: '20px',
+                      borderRadius: '3px',
+                      padding: '24px',
+                      boxShadow: '0 16px 36px -16px rgba(28, 27, 24, 0.09)',
                     }}
                   >
-                    {/* Live Monochrome Pulse Gate Lane tying directly into the Vault concept */}
+                    {/* Live Pulse Gate Lane */}
                     <div
                       style={{
                         position: 'relative',
-                        height: '44px',
+                        height: '50px',
                         background: '#F5F2EB',
-                        border: '1px solid #E5E1D8',
+                        border: '1px solid #DCD7CD',
                         borderRadius: '2px',
-                        marginBottom: '18px',
+                        marginBottom: '22px',
                         overflow: 'hidden',
                         display: 'flex',
                         alignItems: 'center',
@@ -146,29 +260,34 @@ export default function AlgorithmShowcase() {
                       <span
                         style={{
                           position: 'absolute',
-                          left: '12px',
-                          fontFamily: 'var(--font-mono)',
+                          left: '16px',
+                          fontFamily: 'var(--font-mono, monospace)',
                           fontSize: '10px',
+                          fontWeight: 700,
                           color: '#8C887F',
+                          letterSpacing: '0.06em',
                           zIndex: 2,
                         }}
                       >
-                        INCOMING
+                        CLIENT INGRESS
                       </span>
+
                       <span
                         style={{
                           position: 'absolute',
-                          right: '12px',
-                          fontFamily: 'var(--font-mono)',
+                          right: '16px',
+                          fontFamily: 'var(--font-mono, monospace)',
                           fontSize: '10px',
+                          fontWeight: 700,
                           color: '#1C1B18',
+                          letterSpacing: '0.06em',
                           zIndex: 2,
                         }}
                       >
-                        ORIGIN SAFE
+                        PROTECTED ORIGIN (200 OK)
                       </span>
 
-                      {/* Center LimitX Gate Barrier */}
+                      {/* Center Gate Barrier Line */}
                       <div
                         style={{
                           position: 'absolute',
@@ -185,17 +304,20 @@ export default function AlgorithmShowcase() {
                           position: 'absolute',
                           left: '50%',
                           transform: 'translateX(-50%)',
-                          top: '2px',
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '9px',
+                          top: '4px',
+                          fontFamily: 'var(--font-mono, monospace)',
+                          fontSize: '9.5px',
+                          fontWeight: 700,
                           background: '#1C1B18',
-                          color: '#FBF9F5',
-                          padding: '1px 6px',
+                          color: '#FAF8F5',
+                          padding: '2px 9px',
                           borderRadius: '1px',
+                          letterSpacing: '0.06em',
                           zIndex: 4,
+                          boxShadow: '0 2px 6px rgba(28, 27, 24, 0.2)',
                         }}
                       >
-                        GATE
+                        LIMITX GATEWAY · EVAL &lt; 0.6MS
                       </span>
 
                       {/* Animated Allowed Pulses */}
@@ -205,8 +327,8 @@ export default function AlgorithmShowcase() {
                           className="lx-pulse-pass"
                           style={{
                             position: 'absolute',
-                            left: '70px',
-                            width: '18px',
+                            left: '80px',
+                            width: '22px',
                             height: '4px',
                             borderRadius: '1px',
                             background: '#1C1B18',
@@ -215,7 +337,7 @@ export default function AlgorithmShowcase() {
                         />
                       ))}
 
-                      {/* Under Spike: Excess Pulses Halt & Deflect at Gate Line */}
+                      {/* Under Spike: Excess Pulses Halt at Gate */}
                       {pattern === 'burst' &&
                         [-0.3, -1.0, -1.7].map((delay, idx) => (
                           <span
@@ -223,111 +345,164 @@ export default function AlgorithmShowcase() {
                             className="lx-pulse-halt"
                             style={{
                               position: 'absolute',
-                              left: '70px',
-                              top: idx % 2 === 0 ? '13px' : '28px',
-                              width: '14px',
-                              height: '3px',
+                              left: '80px',
+                              top: idx % 2 === 0 ? '16px' : '30px',
+                              width: '18px',
+                              height: '3.5px',
                               borderRadius: '1px',
-                              background: '#8C887F',
+                              background: '#A83B2B',
                               animationDelay: `${delay}s`,
                             }}
                           />
                         ))}
                     </div>
 
-                    {/* Slim Full-Width Horizontal Traffic Strip */}
-                    <svg
-                      viewBox="0 0 740 84"
-                      style={{ width: '100%', height: 'auto', display: 'block', marginBottom: '18px' }}
-                      role="img"
-                      aria-label={`${mode.name} behavior under ${pattern} traffic`}
-                    >
-                      <line x1="0" y1="22" x2="740" y2="22" stroke="#C9C3B7" strokeWidth="1" strokeDasharray="4 4" />
-                      <text x="740" y="15" textAnchor="end" fontSize="10" fontFamily="IBM Plex Mono, monospace" fill="#8C887F">
-                        ROUTE CAP
-                      </text>
+                    {/* SVG Traffic Histogram Strip */}
+                    <div style={{ marginBottom: '24px' }}>
+                      <svg
+                        viewBox="0 0 740 92"
+                        style={{ width: '100%', height: 'auto', display: 'block' }}
+                        role="img"
+                        aria-label={`${mode.name} behavior under ${pattern} traffic`}
+                      >
+                        {/* Threshold Line */}
+                        <line x1="0" y1="24" x2="740" y2="24" stroke="#DCD7CD" strokeWidth="1" strokeDasharray="4 4" />
+                        <text x="740" y="16" textAnchor="end" fontSize="9.5" fontFamily="IBM Plex Mono, monospace" fontWeight="600" fill="#8C887F">
+                          CAPACITY CEILING (100 REQ/S)
+                        </text>
 
-                      {bars.map((val, i) => {
-                        const x = 14 + i * 60;
-                        const h = (val / 5) * 52;
-                        const y = 76 - h;
-                        const isCapped = capped.includes(i);
+                        {bars.map((val, i) => {
+                          const x = 14 + i * 60;
+                          const h = (val / 5) * 48;
+                          const y = 74 - h;
+                          const isCapped = capped.includes(i);
 
-                        return (
-                          <g key={`${mode.id}-${pattern}-${i}`}>
-                            <rect
-                              x={x}
-                              y={y}
-                              width="38"
-                              height={h}
-                              rx="1.5"
-                              fill="#1C1B18"
-                              className="lx-bar-rise"
-                              style={{ animationDelay: `${i * 22}ms` }}
-                            />
-                            {isCapped && (
-                              <g>
-                                <rect
-                                  x={x}
-                                  y={Math.max(4, y - 18)}
-                                  width="38"
-                                  height="14"
-                                  rx="1.5"
-                                  fill="#F5F2EB"
-                                  stroke="#1C1B18"
-                                  strokeWidth="1"
-                                  strokeDasharray="3 2"
-                                />
-                                <text
-                                  x={x + 19}
-                                  y={Math.max(4, y - 18) + 10}
-                                  textAnchor="middle"
-                                  fontSize="8.5"
-                                  fontFamily="IBM Plex Mono, monospace"
-                                  fill="#4A4843"
-                                >
-                                  429
-                                </text>
-                              </g>
-                            )}
-                          </g>
-                        );
-                      })}
+                          return (
+                            <g key={`${mode.id}-${pattern}-${i}`}>
+                              <rect
+                                x={x}
+                                y={y}
+                                width="38"
+                                height={h}
+                                rx="1.5"
+                                fill="#1C1B18"
+                                className="lx-bar-rise"
+                                style={{ animationDelay: `${i * 20}ms` }}
+                              />
+                              {isCapped && (
+                                <g>
+                                  <rect
+                                    x={x}
+                                    y={Math.max(2, y - 20)}
+                                    width="38"
+                                    height="15"
+                                    rx="1.5"
+                                    fill="#F9ECEA"
+                                    stroke="#E8C4BE"
+                                    strokeWidth="1"
+                                  />
+                                  <text
+                                    x={x + 19}
+                                    y={Math.max(2, y - 20) + 11}
+                                    textAnchor="middle"
+                                    fontSize="9"
+                                    fontFamily="IBM Plex Mono, monospace"
+                                    fontWeight="750"
+                                    fill="#A83B2B"
+                                  >
+                                    429
+                                  </text>
+                                </g>
+                              )}
+                              {/* X Axis Time Marks */}
+                              <text
+                                x={x + 19}
+                                y={88}
+                                textAnchor="middle"
+                                fontSize="9"
+                                fontFamily="IBM Plex Mono, monospace"
+                                fontWeight="500"
+                                fill="#8C887F"
+                              >
+                                {TIME_MARKS[i]}
+                              </text>
+                            </g>
+                          );
+                        })}
+                      </svg>
+                    </div>
 
-                      <line x1="0" y1="76" x2="740" y2="76" stroke="#DCD7CD" strokeWidth="1" />
-                    </svg>
-
-                    {/* 3 Clean User Takeaways Inline */}
+                    {/* 3 Technical Architecture Spec Tiles */}
                     <div
-                      className="lx-three-col"
                       style={{
-                        gap: '16px',
-                        paddingTop: '14px',
-                        borderTop: '1px solid #EFECE4',
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+                        gap: '12px',
                       }}
                     >
-                      <div>
-                        <div style={{ fontSize: '11px', color: '#8C887F', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '3px' }}>
-                          Ideal for
+                      <div
+                        style={{
+                          padding: '14px 16px',
+                          background: '#F5F2EB',
+                          border: '1px solid #DCD7CD',
+                          borderRadius: '2px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                          <Cpu size={13} color="#8C887F" />
+                          <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: '10px', color: '#8C887F', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>
+                            Workload Profile
+                          </span>
                         </div>
-                        <div style={{ fontSize: '13.5px', fontWeight: 500, color: '#1C1B18' }}>
+                        <div style={{ fontSize: '13.5px', fontWeight: 650, color: '#1C1B18', marginBottom: '4px' }}>
                           {mode.bestFor}
                         </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '11px', color: '#8C887F', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '3px' }}>
-                          When spikes hit
+                        <div style={{ fontSize: '12px', color: '#5F5C55', lineHeight: 1.45 }}>
+                          {mode.bestForDesc}
                         </div>
-                        <div style={{ fontSize: '13.5px', fontWeight: 500, color: '#1C1B18' }}>
+                      </div>
+
+                      <div
+                        style={{
+                          padding: '14px 16px',
+                          background: '#F5F2EB',
+                          border: '1px solid #DCD7CD',
+                          borderRadius: '2px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                          <Zap size={13} color="#8C887F" />
+                          <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: '10px', color: '#8C887F', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>
+                            Spike Handling
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '13.5px', fontWeight: 650, color: '#1C1B18', marginBottom: '4px' }}>
                           {mode.onSpike}
                         </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '11px', color: '#8C887F', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '3px' }}>
-                          Result
+                        <div style={{ fontSize: '12px', color: '#5F5C55', lineHeight: 1.45 }}>
+                          {mode.onSpikeDesc}
                         </div>
-                        <div style={{ fontSize: '13.5px', fontWeight: 500, color: '#1C1B18' }}>
+                      </div>
+
+                      <div
+                        style={{
+                          padding: '14px 16px',
+                          background: '#F5F2EB',
+                          border: '1px solid #DCD7CD',
+                          borderRadius: '2px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                          <ShieldCheck size={13} color="#8C887F" />
+                          <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: '10px', color: '#8C887F', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>
+                            Client Contract
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '13.5px', fontWeight: 650, color: '#1C1B18', marginBottom: '4px' }}>
                           {mode.experience}
+                        </div>
+                        <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: '#4A4843', marginTop: '4px', background: '#EAE6DD', padding: '3px 6px', borderRadius: '1px', display: 'inline-block' }}>
+                          {mode.headerSpec}
                         </div>
                       </div>
                     </div>

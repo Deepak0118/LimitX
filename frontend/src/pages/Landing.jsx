@@ -314,13 +314,22 @@ export default function Landing() {
         }}
       >
         <ScrollRevealStage mode="rise">
-          <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '88px 24px' }}>
-            <div style={{ marginBottom: '30px' }}>
-              <h2 style={{ margin: '0 0 8px', fontSize: 'clamp(26px, 3vw, 34px)', fontWeight: 400, letterSpacing: '-0.025em', color: '#1C1B18' }}>
+          <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '92px 24px' }}>
+            <div style={{ marginBottom: '32px' }}>
+              <h2
+                style={{
+                  fontFamily: '"Plus Jakarta Sans", var(--font-sans), sans-serif',
+                  margin: '0 0 10px',
+                  fontSize: 'clamp(28px, 3.2vw, 38px)',
+                  fontWeight: 650,
+                  letterSpacing: '-0.025em',
+                  color: '#1C1B18',
+                }}
+              >
                 Protect your server, your users, and your bill.
               </h2>
-              <p style={{ margin: 0, fontSize: '15px', color: '#4A4843', maxWidth: '520px' }}>
-                Hover or click any panel to see what changes the moment traffic hits LimitX.
+              <p style={{ margin: 0, fontSize: '15.5px', color: '#5F5C55', maxWidth: '540px', lineHeight: 1.6 }}>
+                Hover or click any panel to inspect live edge enforcement and zero-code rate governance.
               </p>
             </div>
 
@@ -330,14 +339,23 @@ export default function Landing() {
       </section>
 
       {/* Band 4: Linear-Style Hairline Expandable Index (Warm Stone + Scroll Depth Rise) */}
-      <section id="algorithms" style={{ maxWidth: '1040px', margin: '0 auto', padding: '86px 24px' }}>
+      <section id="algorithms" style={{ maxWidth: '1080px', margin: '0 auto', padding: '92px 24px', scrollMarginTop: '68px' }}>
         <ScrollRevealStage mode="rise">
-          <div style={{ marginBottom: '14px' }}>
-            <h2 style={{ margin: '0 0 8px', fontSize: 'clamp(25px, 3vw, 32px)', fontWeight: 400, letterSpacing: '-0.025em', color: '#1C1B18' }}>
+          <div style={{ marginBottom: '18px' }}>
+            <h2
+              style={{
+                fontFamily: '"Plus Jakarta Sans", var(--font-sans), sans-serif',
+                margin: '0 0 10px',
+                fontSize: 'clamp(28px, 3.2vw, 38px)',
+                fontWeight: 650,
+                letterSpacing: '-0.025em',
+                color: '#1C1B18',
+              }}
+            >
               Three ways to control traffic.
             </h2>
-            <p style={{ margin: 0, fontSize: '15px', color: '#4A4843' }}>
-              Expand a rule below to compare how each algorithm handles steady traffic vs sudden floods.
+            <p style={{ margin: 0, fontSize: '15.5px', color: '#5F5C55', lineHeight: 1.6 }}>
+              Compare how Token Bucket, Fixed Window, and Sliding Window mitigate sudden floods in real time.
             </p>
           </div>
 

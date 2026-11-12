@@ -680,33 +680,6 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
           pointerEvents: 'none',
         }}
       >
-        {/* Top Left Architecture Pill */}
-        <div
-          className="hidden sm:flex"
-          style={{
-            position: 'absolute',
-            top: '26px',
-            left: '28px',
-            background: 'rgba(251, 249, 245, 0.94)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid #DCD7CD',
-            borderRadius: '2px',
-            padding: '7px 12px',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '11px',
-            fontFamily: 'var(--font-mono, monospace)',
-            color: '#1C1B18',
-            boxShadow: '0 1px 4px rgba(28, 27, 24, 0.04)',
-            pointerEvents: 'auto',
-          }}
-        >
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#1C1B18' }} />
-          <span>&lt;0.6MS OVERHEAD</span>
-          <span style={{ color: '#8C887F' }}>•</span>
-          <span style={{ color: '#5F5C55' }}>ZERO CODE CHANGES</span>
-        </div>
-
         {/* Top Right Live Traffic Legend */}
         <div
           className="hidden md:flex"
@@ -747,20 +720,21 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
             pointerEvents: 'auto',
           }}
         >
-          {/* Core Headline in Plus Jakarta Sans with Soft-Lit Warm Stone Gradient */}
+          {/* Premium Architectural Display Title in Plus Jakarta Sans */}
           <h1
             style={{
-              fontFamily: '"Plus Jakarta Sans", var(--font-sans), -apple-system, sans-serif',
-              fontSize: 'clamp(48px, 6.2vw, 74px)',
-              fontWeight: 700,
-              lineHeight: 1.05,
-              letterSpacing: '-0.035em',
+              fontFamily: '"Plus Jakarta Sans", var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+              fontSize: 'clamp(54px, 7.2vw, 86px)',
+              fontWeight: 800,
+              lineHeight: 1.02,
+              letterSpacing: '-0.04em',
               color: '#1C1B18',
-              background: 'linear-gradient(180deg, #1C1B18 20%, #443E36 100%)',
+              background: 'linear-gradient(180deg, #181512 15%, #2F2A24 60%, #584F44 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              margin: '0 auto 12px',
+              margin: '0 auto 14px',
               textAlign: 'center',
+              filter: 'drop-shadow(0 2px 18px rgba(30, 25, 20, 0.08))',
             }}
           >
             Rate Limiter
@@ -769,11 +743,11 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
           {/* Clean User-POV Subtitle */}
           <p
             style={{
-              margin: '0 auto 24px',
-              fontSize: 'clamp(15px, 1.6vw, 17px)',
+              margin: '0 auto 26px',
+              fontSize: 'clamp(15.5px, 1.7vw, 17.5px)',
               color: '#5F5C55',
-              maxWidth: '540px',
-              lineHeight: 1.55,
+              maxWidth: '520px',
+              lineHeight: 1.6,
               textAlign: 'center',
             }}
           >
