@@ -318,10 +318,10 @@ export default function Landing() {
             <div style={{ marginBottom: '32px' }}>
               <h2
                 style={{
-                  fontFamily: '"Plus Jakarta Sans", var(--font-sans), sans-serif',
+                  fontFamily: 'var(--font-sans), sans-serif',
                   margin: '0 0 10px',
                   fontSize: 'clamp(28px, 3.2vw, 38px)',
-                  fontWeight: 650,
+                  fontWeight: 600,
                   letterSpacing: '-0.025em',
                   color: '#1C1B18',
                 }}
@@ -344,10 +344,10 @@ export default function Landing() {
           <div style={{ marginBottom: '18px' }}>
             <h2
               style={{
-                fontFamily: '"Plus Jakarta Sans", var(--font-sans), sans-serif',
+                fontFamily: 'var(--font-sans), sans-serif',
                 margin: '0 0 10px',
                 fontSize: 'clamp(28px, 3.2vw, 38px)',
-                fontWeight: 650,
+                fontWeight: 600,
                 letterSpacing: '-0.025em',
                 color: '#1C1B18',
               }}
