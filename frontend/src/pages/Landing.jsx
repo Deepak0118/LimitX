@@ -1,28 +1,14 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Copy, ArrowRight } from 'lucide-react';
-import { PROXY_BASE } from '../api';
+import { ArrowRight } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
 import HeroPrecisionStage from '../components/HeroPrecisionStage';
+import UrlSwapStage from '../components/UrlSwapStage';
 import WhyLimitXStage from '../components/WhyLimitXStage';
 import AlgorithmShowcase from '../components/AlgorithmShowcase';
 import ScrollRevealStage from '../components/ui/ScrollRevealStage';
-
-const SAMPLE_PROXY_URL = `${PROXY_BASE}/proxy/api_7f3a9c12`;
+import ScrollKiteTrail from '../components/ui/ScrollKiteTrail';
 
 export default function Landing() {
-  const [cutoverTab, setCutoverTab] = useState('env'); // 'flow' | 'env' | 'curl'
-  const [copiedEnv, setCopiedEnv] = useState(false);
-
-  const envSnippet = `# Before\n- API_BASE_URL=https://api.example.com\n\n# After\n+ API_BASE_URL=${SAMPLE_PROXY_URL}`;
-  const curlSnippet = `curl -i "${SAMPLE_PROXY_URL}/auth/login" \\\n  -X POST -H "Content-Type: application/json"`;
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(cutoverTab === 'curl' ? curlSnippet : envSnippet);
-    setCopiedEnv(true);
-    setTimeout(() => setCopiedEnv(false), 1500);
-  };
-
   const scrollToSetup = (e) => {
     if (e) e.preventDefault();
     const target = document.getElementById('integration');
@@ -32,7 +18,10 @@ export default function Landing() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F5F2EB', color: '#1C1B18' }}>
+    <div style={{ minHeight: '100vh', background: '#F5F2EB', color: '#1C1B18', position: 'relative', overflowX: 'hidden' }}>
+      {/* GSAP-Style Scroll Scrubbed Kite & Motion Ribbon Guide */}
+      <ScrollKiteTrail />
+
       {/* Permanent Fixed / Sticky Frosted Glass Top Navbar */}
       <header
         className="lx-nav"
@@ -170,7 +159,7 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* Band 1: Precision Edge Gateway Hero Stage */}
+      {/* Band 1: Precision Edge Gateway Hero Stage (Original Hero Restored) */}
       <HeroPrecisionStage onOpenSetup={scrollToSetup} />
 
       {/* Band 2: 1-Step URL Swap Integration Section */}
@@ -186,120 +175,17 @@ export default function Landing() {
         }}
       >
         <ScrollRevealStage mode="rise">
-          <div style={{ maxWidth: '820px', width: '100%', margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{ margin: '0 0 10px', fontSize: 'clamp(28px, 3.4vw, 40px)', fontWeight: 400, letterSpacing: '-0.025em', color: '#1C1B18' }}>
-            Live in one URL swap.
-          </h2>
-          <p style={{ margin: '0 auto 24px', fontSize: '15.5px', color: '#4A4843', lineHeight: 1.6, maxWidth: '520px' }}>
-            No SDKs to install, no middleware to wire up, and no backend redeploy when limits change.
-          </p>
-
-          {/* Centered Inline Step Pills */}
-          <div style={{ display: 'inline-flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '26px' }}>
-            {[
-              'Paste origin URL',
-              '→',
-              'Swap API_BASE_URL',
-              '→',
-              'Control limits live',
-            ].map((token, i) =>
-              token === '→' ? (
-                <span key={i} style={{ color: '#8C887F', fontSize: '13px', padding: '0 2px' }}>→</span>
-              ) : (
-                <span
-                  key={token}
-                  style={{
-                    padding: '6px 12px',
-                    background: '#FBF9F5',
-                    border: '1px solid #DCD7CD',
-                    borderRadius: '2px',
-                    fontSize: '13px',
-                    fontWeight: 500,
-                    color: '#1C1B18',
-                  }}
-                >
-                  {token}
-                </span>
-              ),
-            )}
-          </div>
-
-          {/* Centered Warm Charcoal Code Strip */}
-          <div style={{ background: '#22211E', color: '#FBF9F5', border: '1px solid #383631', borderRadius: '2px', textAlign: 'left', boxShadow: '0 24px 52px -28px rgba(28, 27, 24, 0.25)' }}>
-            <div style={{ padding: '11px 16px', borderBottom: '1px solid #35332F', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'inline-flex', gap: '6px' }}>
-                {[
-                  { id: 'env', label: '.env swap' },
-                  { id: 'curl', label: 'Test cURL' },
-                  { id: 'flow', label: 'Traffic path' },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setCutoverTab(tab.id)}
-                    style={{
-                      padding: '4px 10px',
-                      borderRadius: '0px',
-                      border: cutoverTab === tab.id ? '1px solid #5F5C55' : '1px solid transparent',
-                      background: cutoverTab === tab.id ? '#35332F' : 'transparent',
-                      color: cutoverTab === tab.id ? '#FBF9F5' : '#9B968C',
-                      fontSize: '12px',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                type="button"
-                onClick={handleCopy}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '0px',
-                  border: '1px solid #4A4741',
-                  background: 'transparent',
-                  color: '#FBF9F5',
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  cursor: 'pointer',
-                }}
-              >
-                {copiedEnv ? <Check size={11} color="#FBF9F5" /> : <Copy size={11} />}
-                {copiedEnv ? 'Copied' : 'Copy'}
-              </button>
+          <div style={{ maxWidth: '1120px', width: '100%', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+              <h2 style={{ margin: '0 0 10px', fontSize: 'clamp(28px, 3.4vw, 40px)', fontWeight: 400, letterSpacing: '-0.025em', color: '#1C1B18' }}>
+                Live in one URL swap.
+              </h2>
+              <p style={{ margin: '0 auto', fontSize: '15.5px', color: '#4A4843', lineHeight: 1.6, maxWidth: '540px' }}>
+                No SDKs to install, no middleware to wire up, and no backend redeploy when limits change.
+              </p>
             </div>
 
-            <div style={{ padding: '22px 20px' }}>
-              {cutoverTab === 'flow' ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '10px' }}>
-                  {[
-                    { title: 'Client', sub: 'Calls /proxy/:apiId' },
-                    { title: 'LimitX', sub: 'Limits & IP filter' },
-                    { title: 'Backend', sub: 'Clean traffic only' },
-                  ].map((node) => (
-                    <div key={node.title} style={{ padding: '14px 12px', background: '#2B2A27', border: '1px solid #3D3B37' }}>
-                      <div style={{ fontSize: '12.5px', fontWeight: 600, color: '#FBF9F5', marginBottom: '4px' }}>
-                        {node.title}
-                      </div>
-                      <div style={{ fontSize: '11.5px', color: '#A5A096' }}>
-                        {node.sub}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <pre style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: '12px', lineHeight: 1.7, color: '#FBF9F5', whiteSpace: 'pre-wrap', overflowX: 'auto' }}>
-                  {cutoverTab === 'curl' ? curlSnippet : envSnippet}
-                </pre>
-              )}
-            </div>
-          </div>
+            <UrlSwapStage />
           </div>
         </ScrollRevealStage>
       </section>

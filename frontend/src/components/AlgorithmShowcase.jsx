@@ -1,577 +1,576 @@
 import { useState, useEffect } from 'react';
-import { Clock, Zap, ShieldCheck, Check } from 'lucide-react';
+import { Clock, Zap, ShieldCheck, Check, Sparkles, AlertCircle, ArrowRight, Play } from 'lucide-react';
+import SpotlightCard from './ui/SpotlightCard';
 
 export default function AlgorithmShowcase() {
-  // --- Token Bucket Interactive Simulator State ---
-  const [bucketTokens, setBucketTokens] = useState(7);
-  const [bucketNotice, setBucketNotice] = useState(null);
-  const MAX_TOKENS = 10;
+  const [activeTab, setActiveTab] = useState('token'); // 'token' | 'fixed' | 'sliding'
+
+  // =========================================================================
+  // TAB 1: TOKEN BUCKET INTERACTIVE STATE
+  // =========================================================================
+  const MAX_TOKENS = 8;
+  const [tokens, setTokens] = useState(6);
+  const [bucketLog, setBucketLog] = useState({ text: 'Bucket idling · 6 tokens ready for burst', type: 'idle' });
+  const [isDraining, setIsDraining] = useState(false);
 
   useEffect(() => {
-    const refillTimer = setInterval(() => {
-      setBucketTokens((prev) => {
-        if (prev < MAX_TOKENS) return prev + 1;
-        return prev;
-      });
-    }, 1500);
-    return () => clearInterval(refillTimer);
+    const refillInterval = setInterval(() => {
+      setTokens((prev) => (prev < MAX_TOKENS ? prev + 1 : prev));
+    }, 1800);
+    return () => clearInterval(refillInterval);
   }, []);
 
-  const fireSingleTokenReq = () => {
-    if (bucketTokens > 0) {
-      setBucketTokens((t) => t - 1);
-      setBucketNotice({ text: '200 OK · 1 Token Consumed (0.3ms)', type: 'ok' });
-    } else {
-      setBucketNotice({ text: '429 THROTTLED · Bucket Starved', type: 'blocked' });
-    }
-  };
+  const handleConsume = (amount) => {
+    setIsDraining(true);
+    setTimeout(() => setIsDraining(false), 300);
 
-  const fireBurstTokenReq = (amount) => {
-    if (bucketTokens >= amount) {
-      setBucketTokens((t) => t - amount);
-      setBucketNotice({ text: `200 OK · Burst of ${amount} absorbed smoothly!`, type: 'ok' });
+    if (tokens >= amount) {
+      setTokens((t) => t - amount);
+      setBucketLog({
+        text: `200 OK · ${amount} token(s) consumed. Microsecond overhead: 0.3ms`,
+        type: 'ok',
+      });
     } else {
-      const allowed = bucketTokens;
-      const blocked = amount - allowed;
-      setBucketTokens(0);
-      setBucketNotice({
-        text: `429 PARTIAL · ${allowed} allowed, ${blocked} dropped at edge!`,
+      const allowed = tokens;
+      const rejected = amount - allowed;
+      setTokens(0);
+      setBucketLog({
+        text: `429 THROTTLED · ${allowed} allowed, ${rejected} dropped at edge!`,
         type: 'blocked',
       });
     }
   };
 
-  // --- Fixed Window Interactive Simulator State ---
-  const [windowReqs, setWindowReqs] = useState(17);
-  const [secondsRemaining, setSecondsRemaining] = useState(14);
-  const [fixedNotice, setFixedNotice] = useState(null);
-  const FIXED_LIMIT = 20;
+  // =========================================================================
+  // TAB 2: FIXED WINDOW INTERACTIVE STATE
+  // =========================================================================
+  const FIXED_CAP = 15;
+  const [fixedCount, setFixedCount] = useState(9);
+  const [secondsLeft, setSecondsLeft] = useState(24);
+  const [fixedLog, setFixedLog] = useState({ text: 'Window active · 9 / 15 requests used', type: 'idle' });
 
   useEffect(() => {
     const clock = setInterval(() => {
-      setSecondsRemaining((sec) => {
-        if (sec <= 1) {
-          setWindowReqs(0);
-          setFixedNotice({ text: 'Window Reset! Counter cleared to 0 / 20 reqs', type: 'reset' });
+      setSecondsLeft((s) => {
+        if (s <= 1) {
+          setFixedCount(0);
+          setFixedLog({ text: 'WINDOW RESET! Counter restored to 0 / 15 requests', type: 'reset' });
           return 60;
         }
-        return sec - 1;
+        return s - 1;
       });
     }, 1000);
     return () => clearInterval(clock);
   }, []);
 
-  const sendFixedReq = (qty = 1) => {
-    if (windowReqs + qty <= FIXED_LIMIT) {
-      setWindowReqs((prev) => prev + qty);
-      setFixedNotice({ text: `200 OK · Quota used: ${windowReqs + qty}/${FIXED_LIMIT}`, type: 'ok' });
+  const handleSendFixed = (qty = 1) => {
+    if (fixedCount + qty <= FIXED_CAP) {
+      setFixedCount((c) => c + qty);
+      setFixedLog({ text: `200 OK · Request accepted (${fixedCount + qty}/${FIXED_CAP})`, type: 'ok' });
     } else {
-      const blocked = windowReqs + qty - FIXED_LIMIT;
-      setWindowReqs(FIXED_LIMIT);
-      setFixedNotice({
-        text: `429 HARD CAP · ${blocked} blocked. Retry-After: ${secondsRemaining}s`,
+      setFixedCount(FIXED_CAP);
+      setFixedLog({
+        text: `429 QUOTA HIT · Hard limit reached. Window resets in ${secondsLeft}s`,
         type: 'blocked',
       });
     }
   };
 
-  // --- Sliding Window Interactive Simulator State ---
-  const [slidingAttackSimulated, setSlidingAttackSimulated] = useState(false);
-  const [slidingNotice, setSlidingNotice] = useState(null);
+  // =========================================================================
+  // TAB 3: SLIDING WINDOW INTERACTIVE STATE
+  // =========================================================================
+  const [slidingAttacking, setSlidingAttacking] = useState(false);
+  const [slidingResult, setSlidingResult] = useState(null);
 
-  const simulateBoundaryAttack = () => {
-    setSlidingAttackSimulated(true);
-    setSlidingNotice({
-      text: 'ATTACK THWARTED: 20 reqs at :59 + 20 at :01 caught by rolling 60s frame. 20 dropped with 429!',
-      type: 'blocked',
+  const handleSimulateSlidingAttack = () => {
+    setSlidingAttacking(true);
+    setSlidingResult({
+      attack: '20 requests fired at 00:59 + 20 requests at 01:01',
+      outcome: 'Traditional Fixed Window would allow 40 reqs in 2 seconds (CRASH).',
+      shield: 'LimitX Sliding Window dynamically weighed the rolling 60s frame: 20 blocked with 429!',
     });
-    setTimeout(() => setSlidingAttackSimulated(false), 2400);
+    setTimeout(() => setSlidingAttacking(false), 800);
   };
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(310px, 1fr))',
-        gap: '20px',
-      }}
-    >
-      {/* =========================================================================
-          ALGORITHM 01: TOKEN BUCKET
-          ========================================================================= */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Algorithm Mode Switcher Pills */}
       <div
         style={{
-          background: '#FBF9F5',
-          border: '1px solid #DCD7CD',
-          borderRadius: '2px',
-          padding: '24px',
           display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          boxShadow: '0 4px 16px rgba(28, 27, 24, 0.03)',
+          gap: '8px',
+          background: '#EAE6DD',
+          padding: '4px',
+          borderRadius: '3px',
+          border: '1px solid #DCD7CD',
+          overflowX: 'auto',
         }}
       >
-        <div>
-          {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <span
+        {[
+          { id: 'token', num: '01', title: 'Token Bucket', subtitle: 'Smooth Burst Absorber' },
+          { id: 'fixed', num: '02', title: 'Fixed Window', subtitle: 'Strict Calendar Quotas' },
+          { id: 'sliding', num: '03', title: 'Sliding Log', subtitle: 'Boundary Spike Guard' },
+        ].map((tab) => {
+          const isSelected = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
               style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '10px',
-                fontWeight: 600,
-                color: '#2D6A4F',
-                background: '#EBF3EE',
-                border: '1px solid #C5DDD0',
-                padding: '2px 7px',
-                borderRadius: '1px',
-                letterSpacing: '0.04em',
+                flex: 1,
+                minWidth: '200px',
+                padding: '12px 16px',
+                borderRadius: '2px',
+                background: isSelected ? '#1C1B18' : 'transparent',
+                color: isSelected ? '#FAF8F5' : '#4A4843',
+                border: isSelected ? '1px solid #1C1B18' : '1px solid transparent',
+                textAlign: 'left',
+                cursor: 'pointer',
+                transition: 'all 180ms ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
               }}
             >
-              DEFAULT FOR REST APIS
-            </span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#8C887F' }}>
-              O(1) MEMORY
-            </span>
-          </div>
-
-          <h3
-            style={{
-              margin: '0 0 6px',
-              fontSize: '22px',
-              fontWeight: 400,
-              letterSpacing: '-0.025em',
-              color: '#1C1B18',
-            }}
-          >
-            Token Bucket
-          </h3>
-          <p style={{ margin: '0 0 16px', fontSize: '14px', color: '#4A4843', lineHeight: 1.55 }}>
-            Absorbs natural request bursts from mobile apps and page refreshes, then smoothly paces sustained floods down to refill rate.
-          </p>
-
-          {/* Interactive Reservoir Sandbox */}
-          <div style={{ background: '#F5F2EB', border: '1px solid #DCD7CD', borderRadius: '2px', padding: '14px', marginBottom: '14px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10.5px', fontWeight: 600, color: '#1C1B18' }}>
-                BUCKET RESERVOIR
-              </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10.5px', color: '#5F5C55' }}>
-                Refill: +1 token / 1.5s
-              </span>
-            </div>
-
-            {/* Token Slots */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '3px', height: '34px', marginBottom: '8px' }}>
-              {Array.from({ length: MAX_TOKENS }, (_, i) => {
-                const filled = i < bucketTokens;
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      background: filled ? '#1C1B18' : '#DCD7CD',
-                      borderRadius: '1px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#FAF8F5',
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '9px',
-                      transition: 'all 200ms ease',
-                    }}
-                  >
-                    {filled ? '●' : '○'}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: '10.5px', color: '#1C1B18', marginBottom: '10px' }}>
-              <span><strong>{bucketTokens}</strong> / {MAX_TOKENS} tokens</span>
-              <span style={{ color: bucketTokens === 0 ? '#A83B2B' : '#2D6A4F', fontWeight: 600 }}>
-                {bucketTokens === 0 ? 'BUCKET DEPLETED' : 'READY FOR TRAFFIC'}
-              </span>
-            </div>
-
-            {/* Interactive Triggers */}
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <button
-                type="button"
-                onClick={fireSingleTokenReq}
-                style={{
-                  flex: 1,
-                  padding: '6px 8px',
-                  background: '#FAF8F5',
-                  border: '1px solid #DCD7CD',
-                  borderRadius: '2px',
-                  color: '#1C1B18',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '11px',
-                  cursor: 'pointer',
-                }}
-              >
-                Req (-1)
-              </button>
-              <button
-                type="button"
-                onClick={() => fireBurstTokenReq(4)}
-                style={{
-                  flex: 1,
-                  padding: '6px 8px',
-                  background: '#1C1B18',
-                  border: '1px solid #1C1B18',
-                  borderRadius: '2px',
-                  color: '#FAF8F5',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '11px',
-                  cursor: 'pointer',
-                }}
-              >
-                Burst (4)
-              </button>
-            </div>
-
-            {bucketNotice && (
-              <div
-                style={{
-                  marginTop: '8px',
-                  padding: '5px 8px',
-                  borderRadius: '1px',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '10px',
-                  background: bucketNotice.type === 'ok' ? '#EBF3EE' : '#F9ECEA',
-                  color: bucketNotice.type === 'ok' ? '#2D6A4F' : '#A83B2B',
-                  border: bucketNotice.type === 'ok' ? '1px solid #C5DDD0' : '1px solid #E8C4BE',
-                }}
-              >
-                {bucketNotice.text}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Footer Guarantee */}
-        <div style={{ background: '#F5F2EB', border: '1px solid #DCD7CD', padding: '10px 12px', borderRadius: '2px', marginTop: 'auto' }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9.5px', color: '#8C887F', textTransform: 'uppercase', marginBottom: '2px' }}>
-            CLIENT GUARANTEE
-          </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#1C1B18' }}>
-            200 OK during bursts · 429 only when starved
-          </div>
-        </div>
-      </div>
-
-      {/* =========================================================================
-          ALGORITHM 02: FIXED WINDOW
-          ========================================================================= */}
-      <div
-        style={{
-          background: '#FBF9F5',
-          border: '1px solid #DCD7CD',
-          borderRadius: '2px',
-          padding: '24px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          boxShadow: '0 4px 16px rgba(28, 27, 24, 0.03)',
-        }}
-      >
-        <div>
-          {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '10px',
-                fontWeight: 600,
-                color: '#5F5C55',
-                background: '#EAE6DD',
-                padding: '2px 7px',
-                borderRadius: '1px',
-                letterSpacing: '0.04em',
-              }}
-            >
-              BILLING & QUOTAS
-            </span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#8C887F' }}>
-              O(1) CPU
-            </span>
-          </div>
-
-          <h3
-            style={{
-              margin: '0 0 6px',
-              fontSize: '22px',
-              fontWeight: 400,
-              letterSpacing: '-0.025em',
-              color: '#1C1B18',
-            }}
-          >
-            Fixed Window
-          </h3>
-          <p style={{ margin: '0 0 16px', fontSize: '14px', color: '#4A4843', lineHeight: 1.55 }}>
-            Predictable hard quota reset per minute, hour, or calendar day. Directly matches developer subscription tiers and API key limits.
-          </p>
-
-          {/* Interactive Window Progress Sandbox */}
-          <div style={{ background: '#F5F2EB', border: '1px solid #DCD7CD', borderRadius: '2px', padding: '14px', marginBottom: '14px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <Clock size={12} color="#1C1B18" />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10.5px', fontWeight: 600, color: '#1C1B18' }}>
-                  60-SEC WINDOW
-                </span>
-              </div>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10.5px', color: '#A83B2B', fontWeight: 600 }}>
-                RESET IN {secondsRemaining}s
-              </span>
-            </div>
-
-            {/* Linear Progress */}
-            <div style={{ height: '5px', background: '#DCD7CD', borderRadius: '1px', marginBottom: '10px', overflow: 'hidden' }}>
-              <div
-                style={{
-                  height: '100%',
-                  width: `${((60 - secondsRemaining) / 60) * 100}%`,
-                  background: '#1C1B18',
-                  transition: 'width 1s linear',
-                }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '18px', fontWeight: 600, color: windowReqs >= FIXED_LIMIT ? '#A83B2B' : '#1C1B18' }}>
-                {windowReqs} <span style={{ fontSize: '12px', fontWeight: 400, color: '#5F5C55' }}>/ {FIXED_LIMIT} reqs</span>
-              </span>
               <span
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  fontSize: '9.5px',
+                  fontSize: '11px',
                   fontWeight: 700,
-                  padding: '1px 5px',
-                  borderRadius: '1px',
-                  background: windowReqs >= FIXED_LIMIT ? '#F9ECEA' : '#EBF3EE',
-                  color: windowReqs >= FIXED_LIMIT ? '#A83B2B' : '#2D6A4F',
+                  color: isSelected ? '#C68A2C' : '#8C887F',
                 }}
               >
-                {windowReqs >= FIXED_LIMIT ? 'CAP REACHED (429)' : 'WITHIN QUOTA'}
+                {tab.num}
               </span>
-            </div>
-
-            {/* Triggers */}
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <button
-                type="button"
-                onClick={() => sendFixedReq(1)}
-                style={{
-                  flex: 1,
-                  padding: '6px 8px',
-                  background: '#FAF8F5',
-                  border: '1px solid #DCD7CD',
-                  borderRadius: '2px',
-                  color: '#1C1B18',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '11px',
-                  cursor: 'pointer',
-                }}
-              >
-                +1 Request
-              </button>
-              <button
-                type="button"
-                onClick={() => sendFixedReq(4)}
-                style={{
-                  flex: 1,
-                  padding: '6px 8px',
-                  background: '#1C1B18',
-                  border: '1px solid #1C1B18',
-                  borderRadius: '2px',
-                  color: '#FAF8F5',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '11px',
-                  cursor: 'pointer',
-                }}
-              >
-                +4 Requests
-              </button>
-            </div>
-
-            {fixedNotice && (
-              <div
-                style={{
-                  marginTop: '8px',
-                  padding: '5px 8px',
-                  borderRadius: '1px',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '10px',
-                  background: fixedNotice.type === 'ok' ? '#EBF3EE' : '#F9ECEA',
-                  color: fixedNotice.type === 'ok' ? '#2D6A4F' : '#A83B2B',
-                  border: fixedNotice.type === 'ok' ? '1px solid #C5DDD0' : '1px solid #E8C4BE',
-                }}
-              >
-                {fixedNotice.text}
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: 600, lineHeight: 1.2 }}>{tab.title}</div>
+                <div style={{ fontSize: '11px', color: isSelected ? '#CFC9BC' : '#7A756D', marginTop: '2px' }}>
+                  {tab.subtitle}
+                </div>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Footer Guarantee */}
-        <div style={{ background: '#F5F2EB', border: '1px solid #DCD7CD', padding: '10px 12px', borderRadius: '2px', marginTop: 'auto' }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9.5px', color: '#8C887F', textTransform: 'uppercase', marginBottom: '2px' }}>
-            EMITTED HEADERS
-          </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#1C1B18' }}>
-            Retry-After: {secondsRemaining}s · X-RateLimit-Reset: :00
-          </div>
-        </div>
+            </button>
+          );
+        })}
       </div>
 
       {/* =========================================================================
-          ALGORITHM 03: SLIDING WINDOW
+          INTERACTIVE LABORATORY STAGE
           ========================================================================= */}
-      <div
-        style={{
-          background: '#FBF9F5',
-          border: '1px solid #DCD7CD',
-          borderRadius: '2px',
-          padding: '24px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          boxShadow: '0 4px 16px rgba(28, 27, 24, 0.03)',
-        }}
+      <SpotlightCard
+        style={{ padding: '32px' }}
+        spotlightColor="rgba(198, 138, 44, 0.14)"
+        borderColor="rgba(198, 138, 44, 0.4)"
       >
-        <div>
-          {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '10px',
-                fontWeight: 600,
-                color: '#1C1B18',
-                background: '#EAE6DD',
-                padding: '2px 7px',
-                borderRadius: '1px',
-                letterSpacing: '0.04em',
-              }}
-            >
-              AUTH & CHECKOUT DEFENSE
-            </span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#8C887F' }}>
-              O(log N)
-            </span>
-          </div>
-
-          <h3
-            style={{
-              margin: '0 0 6px',
-              fontSize: '22px',
-              fontWeight: 400,
-              letterSpacing: '-0.025em',
-              color: '#1C1B18',
-            }}
-          >
-            Sliding Window
-          </h3>
-          <p style={{ margin: '0 0 16px', fontSize: '14px', color: '#4A4843', lineHeight: 1.55 }}>
-            Zero double-burst loopholes across boundary reset edges. Essential for authentication, OTP delivery, and checkout routes.
-          </p>
-
-          {/* Interactive Continuous Rolling Window Sandbox */}
-          <div style={{ background: '#F5F2EB', border: '1px solid #DCD7CD', borderRadius: '2px', padding: '14px', marginBottom: '14px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10.5px', fontWeight: 600, color: '#1C1B18' }}>
-                ROLLING FRAME [t-60s ... t]
-              </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#2D6A4F', fontWeight: 600 }}>
-                LOOPHOLE: 0%
-              </span>
-            </div>
-
-            {/* Rolling Frame Visual */}
-            <div style={{ padding: '8px 10px', background: '#FBF9F5', border: '1px solid #DCD7CD', borderRadius: '1px', marginBottom: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9.5px', fontFamily: 'var(--font-mono)', color: '#8C887F', marginBottom: '4px' }}>
-                <span>:59s (Burst 1)</span>
-                <span style={{ color: '#1C1B18', fontWeight: 600 }}>:00s RESET</span>
-                <span>:01s (Burst 2)</span>
+        {activeTab === 'token' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px', alignItems: 'center' }}>
+            {/* Left: Interactive Token Reservoir Physics */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#2D8A4E', fontWeight: 600, background: '#E8F5E9', padding: '2px 8px', borderRadius: '2px' }}>
+                  AUTOMATIC REFILL: +1 TOKEN / 1.8s
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#5F5C55' }}>
+                  CAPACITY: {MAX_TOKENS} TOKENS
+                </span>
               </div>
-              <div style={{ position: 'relative', height: '18px', background: '#E6E2D9', borderRadius: '1px', display: 'flex', alignItems: 'center' }}>
-                <div
+
+              <h3 style={{ margin: '0 0 10px', fontSize: '22px', fontWeight: 500, color: '#1C1B18' }}>
+                Token Bucket Reservoir
+              </h3>
+              <p style={{ margin: '0 0 20px', fontSize: '14.5px', color: '#4A4843', lineHeight: 1.6 }}>
+                Ideal for API endpoints that experience natural traffic bursts (such as LLM generation, webhooks, or batch imports). Allows bursts as long as tokens remain, then smoothly throttles down to the replenishment rate.
+              </p>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
+                <button
+                  type="button"
+                  onClick={() => handleConsume(1)}
                   style={{
-                    position: 'absolute',
-                    left: '20%',
-                    width: '60%',
-                    height: '100%',
-                    background: slidingAttackSimulated ? 'rgba(194, 59, 59, 0.25)' : 'rgba(45, 106, 79, 0.25)',
-                    border: slidingAttackSimulated ? '1px dashed #A83B2B' : '1px dashed #2D6A4F',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '9px',
+                    padding: '9px 16px',
+                    background: '#1C1B18',
+                    color: '#FAF8F5',
+                    border: 'none',
+                    borderRadius: '2px',
+                    fontSize: '13px',
                     fontFamily: 'var(--font-mono)',
-                    fontWeight: 700,
-                    color: slidingAttackSimulated ? '#A83B2B' : '#2D6A4F',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
                   }}
                 >
-                  {slidingAttackSimulated ? '2x SPIKE DETECTED' : 'WEIGHTED WINDOW'}
+                  <span>1 Request (-1 Token)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleConsume(4)}
+                  style={{
+                    padding: '9px 16px',
+                    background: '#C68A2C',
+                    color: '#FAF8F5',
+                    border: 'none',
+                    borderRadius: '2px',
+                    fontSize: '13px',
+                    fontFamily: 'var(--font-mono)',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <Zap size={14} />
+                  <span>Burst 4 Requests</span>
+                </button>
+              </div>
+
+              {/* Live Status Pill */}
+              <div
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: '2px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '12px',
+                  background: bucketLog.type === 'blocked' ? '#F9ECEA' : '#F5F2EB',
+                  border: `1px solid ${bucketLog.type === 'blocked' ? '#E8C4BE' : '#DCD7CD'}`,
+                  color: bucketLog.type === 'blocked' ? '#C64835' : '#2D8A4E',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <span
+                  style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    background: bucketLog.type === 'blocked' ? '#C64835' : '#2D8A4E',
+                  }}
+                />
+                <span>{bucketLog.text}</span>
+              </div>
+            </div>
+
+            {/* Right: Visual Glass Beaker Reservoir */}
+            <div
+              style={{
+                background: '#22211E',
+                borderRadius: '4px',
+                padding: '28px',
+                color: '#FAF8F5',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.5)',
+              }}
+            >
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#A5A096', marginBottom: '16px' }}>
+                LIVE TOKEN CYLINDER
+              </div>
+
+              {/* Visual Beaker */}
+              <div
+                style={{
+                  width: '140px',
+                  height: '180px',
+                  border: '2px solid #5F5C55',
+                  borderTop: 'none',
+                  borderRadius: '0 0 12px 12px',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column-reverse',
+                  padding: '10px',
+                  gap: '6px',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  boxShadow: 'inset 0 -10px 20px rgba(198, 138, 44, 0.1)',
+                }}
+              >
+                {Array.from({ length: MAX_TOKENS }).map((_, i) => {
+                  const isPresent = i < tokens;
+                  return (
+                    <div
+                      key={`token-slot-${i}`}
+                      style={{
+                        height: '14px',
+                        borderRadius: '3px',
+                        background: isPresent
+                          ? 'linear-gradient(90deg, #F5A623 0%, #D48806 100%)'
+                          : 'rgba(255, 255, 255, 0.06)',
+                        border: isPresent ? '1px solid #FFE58F' : '1px dashed #3D3B37',
+                        transition: 'all 200ms ease',
+                        boxShadow: isPresent ? '0 0 8px rgba(245, 166, 35, 0.5)' : 'none',
+                      }}
+                    />
+                  );
+                })}
+              </div>
+
+              <div style={{ marginTop: '16px', textAlign: 'center', fontFamily: 'var(--font-mono)' }}>
+                <div style={{ fontSize: '20px', fontWeight: 600, color: tokens === 0 ? '#FF8A80' : '#FFD591' }}>
+                  {tokens} / {MAX_TOKENS} TOKENS
+                </div>
+                <div style={{ fontSize: '11px', color: '#8C887F', marginTop: '4px' }}>
+                  {tokens === 0 ? 'STATUS: REFILL REQUIRED' : 'STATUS: READY TO DISPATCH'}
                 </div>
               </div>
             </div>
+          </div>
+        )}
 
-            {/* Trigger */}
-            <button
-              type="button"
-              onClick={simulateBoundaryAttack}
-              style={{
-                width: '100%',
-                padding: '6px 8px',
-                background: '#1C1B18',
-                border: '1px solid #1C1B18',
-                borderRadius: '2px',
-                color: '#FAF8F5',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '11px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '5px',
-              }}
-            >
-              <ShieldCheck size={12} color="#FAF8F5" />
-              <span>Test Boundary Exploit (20 reqs across :00)</span>
-            </button>
+        {activeTab === 'fixed' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px', alignItems: 'center' }}>
+            {/* Left: Fixed Window Explanation & Controls */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#1C1B18', fontWeight: 600, background: '#EAE6DD', padding: '2px 8px', borderRadius: '2px' }}>
+                  60-SECOND REVOLVING FRAME
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#5F5C55' }}>
+                  HARD QUOTA: {FIXED_CAP} REQS
+                </span>
+              </div>
 
-            {slidingNotice && (
+              <h3 style={{ margin: '0 0 10px', fontSize: '22px', fontWeight: 500, color: '#1C1B18' }}>
+                Fixed Window Chronometer
+              </h3>
+              <p style={{ margin: '0 0 20px', fontSize: '14.5px', color: '#4A4843', lineHeight: 1.6 }}>
+                Enforces an absolute ceiling per minute, hour, or day. Perfect for billing tier quotas (e.g. 10,000 reqs/day) and third-party SMS/email provider caps.
+              </p>
+
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
+                <button
+                  type="button"
+                  onClick={() => handleSendFixed(1)}
+                  style={{
+                    padding: '9px 16px',
+                    background: '#1C1B18',
+                    color: '#FAF8F5',
+                    border: 'none',
+                    borderRadius: '2px',
+                    fontSize: '13px',
+                    fontFamily: 'var(--font-mono)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Send +1 Request
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSendFixed(5)}
+                  style={{
+                    padding: '9px 16px',
+                    background: '#22211E',
+                    color: '#FAF8F5',
+                    border: '1px solid #4A4741',
+                    borderRadius: '2px',
+                    fontSize: '13px',
+                    fontFamily: 'var(--font-mono)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Send +5 Batch
+                </button>
+              </div>
+
               <div
                 style={{
-                  marginTop: '8px',
-                  padding: '5px 8px',
-                  borderRadius: '1px',
+                  padding: '10px 14px',
+                  borderRadius: '2px',
                   fontFamily: 'var(--font-mono)',
-                  fontSize: '9.5px',
-                  background: '#F9ECEA',
-                  color: '#A83B2B',
-                  border: '1px solid #E8C4BE',
-                  lineHeight: 1.35,
+                  fontSize: '12px',
+                  background: fixedLog.type === 'blocked' ? '#F9ECEA' : '#F5F2EB',
+                  border: `1px solid ${fixedLog.type === 'blocked' ? '#E8C4BE' : '#DCD7CD'}`,
+                  color: fixedLog.type === 'blocked' ? '#C64835' : '#2D8A4E',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
                 }}
               >
-                {slidingNotice.text}
+                <span
+                  style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    background: fixedLog.type === 'blocked' ? '#C64835' : '#2D8A4E',
+                  }}
+                />
+                <span>{fixedLog.text}</span>
               </div>
-            )}
-          </div>
-        </div>
+            </div>
 
-        {/* Footer Guarantee */}
-        <div style={{ background: '#F5F2EB', border: '1px solid #DCD7CD', padding: '10px 12px', borderRadius: '2px', marginTop: 'auto' }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9.5px', color: '#8C887F', textTransform: 'uppercase', marginBottom: '2px' }}>
-            CRITICAL PROTECTION
+            {/* Right: Circular Sweep Dial */}
+            <div
+              style={{
+                background: '#22211E',
+                borderRadius: '4px',
+                padding: '28px',
+                color: '#FAF8F5',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}
+            >
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#A5A096', marginBottom: '16px' }}>
+                CURRENT 60s WINDOW
+              </div>
+
+              <div
+                style={{
+                  width: '150px',
+                  height: '150px',
+                  borderRadius: '50%',
+                  border: '3px solid #383631',
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 0 20px rgba(0,0,0,0.5)',
+                }}
+              >
+                {/* Second Hand Needle */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    width: '2px',
+                    height: '60px',
+                    background: '#C68A2C',
+                    transformOrigin: 'top center',
+                    transform: `rotate(${((60 - secondsLeft) / 60) * 360}deg)`,
+                    transition: 'transform 1s linear',
+                  }}
+                />
+
+                <div style={{ textAlign: 'center', zIndex: 2 }}>
+                  <div style={{ fontSize: '24px', fontWeight: 600, fontFamily: 'var(--font-mono)', color: fixedCount >= FIXED_CAP ? '#FF8A80' : '#FAF8F5' }}>
+                    {fixedCount}/{FIXED_CAP}
+                  </div>
+                  <div style={{ fontSize: '10.5px', fontFamily: 'var(--font-mono)', color: '#8C887F' }}>
+                    {secondsLeft}s TO RESET
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '16px', fontSize: '11.5px', fontFamily: 'var(--font-mono)', color: '#8C887F' }}>
+                RESETS TO 0 AT EXACT :00 MARK
+              </div>
+            </div>
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#1C1B18' }}>
-            /auth/login · /auth/otp · /checkout
+        )}
+
+        {activeTab === 'sliding' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px', alignItems: 'center' }}>
+            {/* Left: Sliding Window Explainer */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#1C1B18', fontWeight: 600, background: '#EAE6DD', padding: '2px 8px', borderRadius: '2px' }}>
+                  ROLLING TIMESTAMP ALGORITHM
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#2D8A4E', fontWeight: 600 }}>
+                  MAXIMUM ACCURACY
+                </span>
+              </div>
+
+              <h3 style={{ margin: '0 0 10px', fontSize: '22px', fontWeight: 500, color: '#1C1B18' }}>
+                Sliding Log / Window
+              </h3>
+              <p style={{ margin: '0 0 20px', fontSize: '14.5px', color: '#4A4843', lineHeight: 1.6 }}>
+                Prevents the classic &quot;Boundary Exploit&quot; where an attacker fires at the very end of minute 1 and again at the start of minute 2, slipping twice the rate past fixed windows.
+              </p>
+
+              <button
+                type="button"
+                onClick={handleSimulateSlidingAttack}
+                style={{
+                  padding: '10px 18px',
+                  background: '#1C1B18',
+                  color: '#FAF8F5',
+                  border: 'none',
+                  borderRadius: '2px',
+                  fontSize: '13px',
+                  fontFamily: 'var(--font-mono)',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '16px',
+                }}
+              >
+                <Play size={13} fill="#FAF8F5" />
+                <span>Simulate Boundary Spike Attack</span>
+              </button>
+
+              {slidingResult && (
+                <div
+                  style={{
+                    padding: '14px',
+                    borderRadius: '2px',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '12px',
+                    background: '#F9ECEA',
+                    border: '1px solid #E8C4BE',
+                    color: '#1C1B18',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                  }}
+                >
+                  <div style={{ fontWeight: 600, color: '#C64835' }}>{slidingResult.attack}</div>
+                  <div style={{ color: '#5F5C55', fontSize: '11.5px' }}>{slidingResult.outcome}</div>
+                  <div style={{ color: '#2D8A4E', fontWeight: 600 }}>{slidingResult.shield}</div>
+                </div>
+              )}
+            </div>
+
+            {/* Right: Visual Rolling Log Waveform */}
+            <div
+              style={{
+                background: '#22211E',
+                borderRadius: '4px',
+                padding: '24px',
+                color: '#FAF8F5',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#A5A096' }}>
+                <span>ROLLING 60-SEC WINDOW</span>
+                <span style={{ color: '#2D8A4E' }}>REDIS ZSET LOG</span>
+              </div>
+
+              {/* Time grid bars */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px', height: '90px', alignItems: 'flex-end', borderBottom: '1px solid #4A4741', paddingBottom: '6px' }}>
+                {[30, 45, 60, slidingAttacking ? 95 : 40, slidingAttacking ? 100 : 35, 50].map((h, idx) => (
+                  <div
+                    key={`bar-${idx}`}
+                    style={{
+                      height: `${h}%`,
+                      background: h > 80 ? '#C64835' : '#C68A2C',
+                      borderRadius: '2px',
+                      transition: 'height 300ms ease, background 300ms ease',
+                    }}
+                  />
+                ))}
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontFamily: 'var(--font-mono)', color: '#8C887F' }}>
+                <span>-60s</span>
+                <span>-40s</span>
+                <span>-20s</span>
+                <span>NOW (LIVE)</span>
+              </div>
+
+              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: '#A5A096', borderTop: '1px solid #35332F', paddingTop: '10px' }}>
+                Weights historical timestamps against the current moment with zero interval leakage.
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        )}
+      </SpotlightCard>
     </div>
   );
 }
