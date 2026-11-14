@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
 import HeroPrecisionStage from '../components/HeroPrecisionStage';
@@ -7,8 +8,41 @@ import WhyLimitXStage from '../components/WhyLimitXStage';
 import BeforeAfterStage from '../components/BeforeAfterStage';
 import ScrollRevealStage from '../components/ui/ScrollRevealStage';
 import ScrollKiteTrail from '../components/ui/ScrollKiteTrail';
+import AuthModal from '../components/AuthModal';
 
-export default function Landing() {
+export default function Landing({ initialAuthModal }) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [authModalOpen, setAuthModalOpen] = useState(() => {
+    return Boolean(
+      initialAuthModal ||
+      searchParams.get('mode') ||
+      searchParams.get('oauth_code') ||
+      searchParams.get('oauth_error')
+    );
+  });
+  const [authModalMode, setAuthModalMode] = useState(() => {
+    if (initialAuthModal) return initialAuthModal;
+    return searchParams.get('mode') === 'signup' ? 'signup' : 'login';
+  });
+
+  const openAuth = (targetMode = 'login', e) => {
+    if (e) e.preventDefault();
+    setAuthModalMode(targetMode);
+    setAuthModalOpen(true);
+  };
+
+  const closeAuth = () => {
+    setAuthModalOpen(false);
+    if (searchParams.has('mode') || searchParams.has('oauth_code') || searchParams.has('oauth_error')) {
+      setSearchParams((params) => {
+        params.delete('mode');
+        params.delete('oauth_code');
+        params.delete('oauth_error');
+        return params;
+      });
+    }
+  };
+
   const scrollToSetup = (e) => {
     if (e) e.preventDefault();
     const target = document.getElementById('integration');
@@ -46,20 +80,6 @@ export default function Landing() {
 
           <nav className="lx-nav-links" aria-label="Landing navigation" style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
             <a
-              href="#overview"
-              style={{
-                fontSize: '14.5px',
-                fontWeight: 500,
-                color: '#1C1B18',
-                textDecoration: 'none',
-                transition: 'opacity 160ms ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.65')}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-            >
-              Product
-            </a>
-            <a
               href="#integration"
               onClick={scrollToSetup}
               style={{
@@ -89,21 +109,6 @@ export default function Landing() {
               Features
             </a>
             <a
-              href="#integration"
-              onClick={scrollToSetup}
-              style={{
-                fontSize: '14.5px',
-                fontWeight: 500,
-                color: '#1C1B18',
-                textDecoration: 'none',
-                transition: 'opacity 160ms ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.65')}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-            >
-              Docs
-            </a>
-            <a
               href="#comparison"
               style={{
                 fontSize: '14.5px',
@@ -115,21 +120,11 @@ export default function Landing() {
               onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.65')}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
             >
-              Comparison
+              With &amp; Without LimitX
             </a>
             <Link
-              to="/auth?mode=login"
-              style={{
-                fontSize: '14.5px',
-                fontWeight: 500,
-                color: '#1C1B18',
-                textDecoration: 'none',
-              }}
-            >
-              Log in
-            </Link>
-            <Link
               to="/auth?mode=signup"
+              onClick={(e) => openAuth('signup', e)}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -160,7 +155,7 @@ export default function Landing() {
       </header>
 
       {/* Band 1: Precision Edge Gateway Hero Stage (Original Hero Restored) */}
-      <HeroPrecisionStage onOpenSetup={scrollToSetup} />
+      <HeroPrecisionStage onOpenSetup={scrollToSetup} onOpenAuth={openAuth} />
 
       {/* Band 2: 1-Step URL Swap Integration Section */}
       <section
@@ -236,7 +231,7 @@ export default function Landing() {
                 color: '#1C1B18',
               }}
             >
-              Before and after LimitX.
+              With and without LimitX.
             </h2>
             <p style={{ margin: 0, fontSize: '15.5px', color: '#4A4843', lineHeight: 1.6 }}>
               Compare direct origin exposure against an autonomous reverse proxy gateway.
@@ -273,9 +268,10 @@ export default function Landing() {
               Put your first API behind LimitX in under a minute.
             </p>
 
-            <div style={{ display: 'inline-flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <div style={{ display: 'inline-flex', justifyContent: 'center' }}>
               <Link
                 to="/auth?mode=signup"
+                onClick={(e) => openAuth('signup', e)}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -290,22 +286,6 @@ export default function Landing() {
                 }}
               >
                 Start protecting APIs <ArrowRight size={14} />
-              </Link>
-              <Link
-                to="/auth?mode=login"
-                style={{
-                  display: 'inline-block',
-                  padding: '11px 18px',
-                  borderRadius: '2px',
-                  border: '1px solid #C9C3B7',
-                  background: '#FBF9F5',
-                  fontSize: '14.5px',
-                  fontWeight: 500,
-                  color: '#1C1B18',
-                  textDecoration: 'none',
-                }}
-              >
-                Sign in
               </Link>
             </div>
           </div>
@@ -332,14 +312,20 @@ export default function Landing() {
             <BrandLogo size={18} fontSize="14px" />
           </Link>
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <a href="#integration" onClick={scrollToSetup} style={{ color: 'inherit', textDecoration: 'none' }}>Setup</a>
-            <a href="#why-limitx" style={{ color: 'inherit', textDecoration: 'none' }}>Why LimitX</a>
-            <a href="#comparison" style={{ color: 'inherit', textDecoration: 'none' }}>Comparison</a>
-            <Link to="/auth?mode=login" style={{ color: 'inherit', textDecoration: 'none' }}>Sign in</Link>
-            <Link to="/auth?mode=signup" style={{ color: '#1C1B18', fontWeight: 500, textDecoration: 'none' }}>Get started &rarr;</Link>
+            <a href="#integration" onClick={scrollToSetup} style={{ color: 'inherit', textDecoration: 'none' }}>How it Works</a>
+            <a href="#why-limitx" style={{ color: 'inherit', textDecoration: 'none' }}>Features</a>
+            <a href="#comparison" style={{ color: 'inherit', textDecoration: 'none' }}>With &amp; Without LimitX</a>
+            <Link to="/auth?mode=signup" onClick={(e) => openAuth('signup', e)} style={{ color: '#1C1B18', fontWeight: 500, textDecoration: 'none' }}>Get started &rarr;</Link>
           </div>
         </div>
       </footer>
+
+      {/* In-Place Interactive Auth Modal Overlay */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={closeAuth}
+        initialMode={authModalMode}
+      />
     </div>
   );
 }

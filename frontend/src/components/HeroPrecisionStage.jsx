@@ -1,12 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  Server,
-  ArrowRight,
-  Play,
-  Zap,
-  Database,
-} from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const VALID_LABELS = [
   'GET /v1/users',
@@ -32,23 +26,13 @@ const ATTACK_LABELS = [
   'BOT FLOOD /scrape',
 ];
 
-export default function HeroPrecisionStage({ onOpenSetup }) {
+export default function HeroPrecisionStage({ onOpenSetup, onOpenAuth }) {
   const canvasRef = useRef(null);
   const wrapperRef = useRef(null);
   const serverRef = useRef(null);
 
   // Traffic simulation mode: 'normal' | 'burst' | 'attack'
   const [trafficMode, setTrafficMode] = useState('normal');
-  const [toastMessage, setToastMessage] = useState('');
-  const toastTimeoutRef = useRef(null);
-
-  const showToast = useCallback((msg) => {
-    setToastMessage(msg);
-    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
-    toastTimeoutRef.current = setTimeout(() => {
-      setToastMessage('');
-    }, 3000);
-  }, []);
 
   const modeRef = useRef(trafficMode);
   modeRef.current = trafficMode;
@@ -131,24 +115,6 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
       label: chosenLabel,
     });
   }, []);
-
-  // Trigger burst wave on button click
-  const triggerBurstWave = useCallback(
-    (e) => {
-      if (e) e.stopPropagation();
-      const w = wrapperRef.current ? wrapperRef.current.clientWidth : 1200;
-      for (let i = 0; i < 11; i++) {
-        spawnPacket(true, null, w);
-        const p = packetsRef.current[packetsRef.current.length - 1];
-        if (p) {
-          p.y = -10 - Math.random() * 45;
-          p.vy = 4.6 + Math.random() * 1.5;
-        }
-      }
-      showToast('⚡ Burst wave simulated — excess requests rate-limited with 429 Too Many Requests');
-    },
-    [spawnPacket, showToast],
-  );
 
   // Click anywhere on sky to drop requests
   const handleCanvasClick = (e) => {
@@ -744,37 +710,6 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
           pointerEvents: 'none',
         }}
       >
-        {/* Top Right Live Traffic Legend */}
-        <div
-          className="hidden md:flex"
-          style={{
-            position: 'absolute',
-            top: '26px',
-            right: '28px',
-            background: 'rgba(251, 249, 245, 0.94)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid #DCD7CD',
-            borderRadius: '2px',
-            padding: '8px 14px',
-            flexDirection: 'column',
-            gap: '5px',
-            fontSize: '10.5px',
-            fontFamily: 'var(--font-mono, monospace)',
-            color: '#4A4843',
-            boxShadow: '0 1px 4px rgba(28, 27, 24, 0.04)',
-            pointerEvents: 'auto',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#1C1B18' }} />
-            <span>Legitimate (200 OK)</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#A83B2B' }} />
-            <span>Throttled (429 Drop)</span>
-          </div>
-        </div>
-
         {/* EDITORIAL HEADLINE BAY — ANCHORED JUST ABOVE THE OZONE ARC */}
         <div
           style={{
@@ -833,6 +768,7 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
             {/* Primary Button */}
             <Link
               to="/auth?mode=signup"
+              onClick={onOpenAuth ? (e) => { e.preventDefault(); onOpenAuth('signup'); } : undefined}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -862,43 +798,6 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
               <span>Get Started Free</span>
               <ArrowRight size={14} />
             </Link>
-
-            {/* Attractive Burst Simulation Trigger */}
-            <button
-              type="button"
-              onClick={triggerBurstWave}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: '#FAF8F5',
-                color: '#1C1B18',
-                border: '1px solid #D4CEBF',
-                padding: '12.5px 22px',
-                borderRadius: '6px',
-                fontSize: '14px',
-                fontWeight: 600,
-                letterSpacing: '-0.01em',
-                cursor: 'pointer',
-                transition: 'all 180ms cubic-bezier(0.16, 1, 0.3, 1)',
-                boxShadow: '0 2px 8px rgba(28, 27, 24, 0.05)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#C68A2C';
-                e.currentTarget.style.background = '#FFFFFF';
-                e.currentTarget.style.transform = 'translateY(-1.5px)';
-                e.currentTarget.style.boxShadow = '0 4px 18px rgba(198, 138, 44, 0.18)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#D4CEBF';
-                e.currentTarget.style.background = '#FAF8F5';
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(28, 27, 24, 0.05)';
-              }}
-            >
-              <Zap size={14} style={{ color: '#C68A2C', fill: '#C68A2C' }} />
-              <span>Test Traffic Burst</span>
-            </button>
           </div>
 
           {/* Interactive Traffic Simulation Mode Switcher (Sleek Floating Pill Bar) */}
@@ -916,18 +815,6 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
               boxShadow: '0 2px 10px rgba(28, 27, 24, 0.05)',
             }}
           >
-            <span
-              style={{
-                fontSize: '10.5px',
-                fontFamily: 'var(--font-mono, monospace)',
-                color: '#8C887F',
-                padding: '0 8px 0 10px',
-                fontWeight: 600,
-                letterSpacing: '0.04em',
-              }}
-            >
-              SIMULATION:
-            </span>
             {[
               { id: 'normal', label: 'Normal Flow', dot: '#2D8A4E' },
               { id: 'burst', label: 'Traffic Burst', dot: '#D96B27' },
@@ -1201,33 +1088,6 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
           </div>
         </div>
       </div>
-
-      {/* Light Toast Notification */}
-      {toastMessage && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: '24px',
-            right: '24px',
-            zIndex: 100,
-            background: '#FBF9F5',
-            border: '1px solid #DCD7CD',
-            borderRadius: '6px',
-            padding: '12px 18px',
-            boxShadow: '0 4px 16px rgba(28, 27, 24, 0.1)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontFamily: 'var(--font-mono, monospace)',
-            fontSize: '12px',
-            color: '#1C1B18',
-            animation: 'fadeIn 200ms ease',
-          }}
-        >
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#1C1B18' }} />
-          <span>{toastMessage}</span>
-        </div>
-      )}
     </section>
   );
 }
