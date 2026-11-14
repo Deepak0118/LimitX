@@ -978,7 +978,7 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
         {/* =========================================================================
             BOTTOM ZONE: EXACT 3-TIER SERVER STACK (WARM LIMESTONE GLASSMORPHISM)
             Frosted translucent glass, warm amber hairlines (no black borders),
-            Amber gold glowing emitters (no green), dynamic real-time activity wave
+            Amber gold glowing emitters (no green), clean authentic server LCD
             ========================================================================= */}
         <div
           style={{
@@ -991,7 +991,7 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
             marginTop: '10px',
           }}
         >
-          {/* Dynamic keyframe animations for warm amber luminescence & activity equalizer */}
+          {/* Dynamic keyframe animations for warm amber luminescence */}
           <style>{`
             @keyframes liveAmberLed {
               0%, 100% {
@@ -1012,18 +1012,6 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
                 transform: scale(1.08);
                 box-shadow: 0 0 16px rgba(229, 192, 123, 0.95);
               }
-            }
-            @keyframes liveEqBar1 {
-              0%, 100% { height: 4px; }
-              50% { height: 13px; }
-            }
-            @keyframes liveEqBar2 {
-              0%, 100% { height: 13px; }
-              50% { height: 5px; }
-            }
-            @keyframes liveEqBar3 {
-              0%, 100% { height: 7px; }
-              50% { height: 14px; }
             }
             @keyframes glassServerGlow {
               0%, 100% {
@@ -1148,71 +1136,35 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
                     border: '1.2px solid rgba(212, 206, 191, 0.75)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0 8px 0 10px',
+                    padding: '0 12px',
                     boxShadow:
                       'inset 0 1px 3px rgba(28, 27, 24, 0.04), 0 0 10px rgba(198, 138, 44, 0.12)',
+                    gap: '7px',
                   }}
                 >
-                  {/* Status Indicator & Label */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span
-                      style={{
-                        width: '5px',
-                        height: '5px',
-                        borderRadius: '50%',
-                        background: '#C68A2C',
-                        boxShadow: '0 0 8px rgba(198, 138, 44, 0.8)',
-                        animation: 'liveAmberLed 1.8s infinite',
-                      }}
-                    />
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-mono, monospace)',
-                        fontSize: '9px',
-                        fontWeight: 700,
-                        color: '#2B2823',
-                        letterSpacing: '0.03em',
-                      }}
-                    >
-                      {unit.label}
-                    </span>
-                  </div>
-
-                  {/* Real-time 3-Bar Equalizer Activity Wave in Amber Gold */}
-                  <div
+                  <span
                     style={{
-                      display: 'flex',
-                      alignItems: 'flex-end',
-                      gap: '2.5px',
-                      height: '14px',
+                      width: '5px',
+                      height: '5px',
+                      borderRadius: '50%',
+                      background: '#C68A2C',
+                      boxShadow: '0 0 8px rgba(198, 138, 44, 0.8)',
+                      animation: 'liveAmberLed 1.8s infinite',
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono, monospace)',
+                      fontSize: '9.5px',
+                      fontWeight: 700,
+                      color: '#2B2823',
+                      letterSpacing: '0.04em',
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    <span
-                      style={{
-                        width: '2px',
-                        background: '#C68A2C',
-                        borderRadius: '1px',
-                        animation: 'liveEqBar1 1.2s ease-in-out infinite',
-                      }}
-                    />
-                    <span
-                      style={{
-                        width: '2px',
-                        background: '#C68A2C',
-                        borderRadius: '1px',
-                        animation: 'liveEqBar2 0.9s ease-in-out infinite',
-                      }}
-                    />
-                    <span
-                      style={{
-                        width: '2px',
-                        background: '#C68A2C',
-                        borderRadius: '1px',
-                        animation: 'liveEqBar3 1.4s ease-in-out infinite',
-                      }}
-                    />
-                  </div>
+                    {unit.label}
+                  </span>
                 </div>
 
                 {/* Right Dual Luminous Glowing LEDs (UI Colors: Amber Gold & Warm Champagne) */}
@@ -1246,31 +1198,6 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
                 </div>
               </div>
             ))}
-
-            {/* Clean Minimal Origin Identity Pill with Glassmorphism */}
-            <div
-              style={{
-                marginTop: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '11px',
-                fontFamily: 'var(--font-mono, monospace)',
-                color: '#555148',
-                fontWeight: 600,
-                background: 'rgba(251, 249, 245, 0.85)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                border: '1px solid #DCD7CD',
-                padding: '4px 14px',
-                borderRadius: '9999px',
-                boxShadow: '0 2px 6px rgba(28, 27, 24, 0.04)',
-              }}
-            >
-              <Server size={12} color="#C68A2C" />
-              <span>Origin Server</span>
-              <span style={{ color: '#C68A2C', fontWeight: 700 }}>● 100% Shielded</span>
-            </div>
           </div>
         </div>
       </div>
