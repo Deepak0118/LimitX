@@ -4,7 +4,7 @@ import BrandLogo from '../components/BrandLogo';
 import HeroPrecisionStage from '../components/HeroPrecisionStage';
 import UrlSwapStage from '../components/UrlSwapStage';
 import WhyLimitXStage from '../components/WhyLimitXStage';
-import AlgorithmShowcase from '../components/AlgorithmShowcase';
+import BeforeAfterStage from '../components/BeforeAfterStage';
 import ScrollRevealStage from '../components/ui/ScrollRevealStage';
 import ScrollKiteTrail from '../components/ui/ScrollKiteTrail';
 
@@ -104,7 +104,7 @@ export default function Landing() {
               Docs
             </a>
             <a
-              href="#algorithms"
+              href="#comparison"
               style={{
                 fontSize: '14.5px',
                 fontWeight: 500,
@@ -115,7 +115,7 @@ export default function Landing() {
               onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.65')}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
             >
-              Algorithms
+              Comparison
             </a>
             <Link
               to="/auth?mode=login"
@@ -223,8 +223,8 @@ export default function Landing() {
         </ScrollRevealStage>
       </section>
 
-      {/* Band 4: Linear-Style Hairline Expandable Index (Warm Stone + Scroll Depth Rise) */}
-      <section id="algorithms" style={{ maxWidth: '1080px', margin: '0 auto', padding: '92px 24px', scrollMarginTop: '68px' }}>
+      {/* Band 4: Interactive Before & After Architecture (React Bits Comparison Slider) */}
+      <section id="comparison" style={{ maxWidth: '1080px', margin: '0 auto', padding: '92px 24px', scrollMarginTop: '68px' }}>
         <ScrollRevealStage mode="rise">
           <div style={{ marginBottom: '24px' }}>
             <h2
@@ -236,14 +236,14 @@ export default function Landing() {
                 color: '#1C1B18',
               }}
             >
-              Three ways to control traffic.
+              Before and after LimitX.
             </h2>
             <p style={{ margin: 0, fontSize: '15.5px', color: '#4A4843', lineHeight: 1.6 }}>
-              Compare how Token Bucket, Fixed Window, and Sliding Window mitigate sudden floods in real time.
+              Compare direct origin exposure against an autonomous reverse proxy gateway.
             </p>
           </div>
 
-          <AlgorithmShowcase />
+          <BeforeAfterStage />
         </ScrollRevealStage>
       </section>
 
@@ -334,7 +334,7 @@ export default function Landing() {
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
             <a href="#integration" onClick={scrollToSetup} style={{ color: 'inherit', textDecoration: 'none' }}>Setup</a>
             <a href="#why-limitx" style={{ color: 'inherit', textDecoration: 'none' }}>Why LimitX</a>
-            <a href="#algorithms" style={{ color: 'inherit', textDecoration: 'none' }}>Modes</a>
+            <a href="#comparison" style={{ color: 'inherit', textDecoration: 'none' }}>Comparison</a>
             <Link to="/auth?mode=login" style={{ color: 'inherit', textDecoration: 'none' }}>Sign in</Link>
             <Link to="/auth?mode=signup" style={{ color: '#1C1B18', fontWeight: 500, textDecoration: 'none' }}>Get started &rarr;</Link>
           </div>
