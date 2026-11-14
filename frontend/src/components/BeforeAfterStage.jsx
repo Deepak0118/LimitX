@@ -12,69 +12,6 @@ import {
 import PaperCrumple from './ui/PaperCrumple';
 
 /**
- * Generates an authentic, high-res seamless cork texture tile using HTML5 Canvas.
- * Creates procedural granular cork pores, flakes, and natural tonal variations.
- */
-function createRealisticCorkTexture() {
-  if (typeof document === 'undefined') return '';
-  const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 256;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return '';
-
-  // Base warm natural cork tone
-  ctx.fillStyle = '#C2AE88';
-  ctx.fillRect(0, 0, 256, 256);
-
-  // Deterministic PRNG for consistent seamless texture
-  let seed = 48271;
-  function random() {
-    seed = (seed * 16807) % 2147483647;
-    return (seed - 1) / 2147483646;
-  }
-
-  // Layers of organic cork granules and pore specks
-  const layers = [
-    { color: '#B39B6F', count: 1400, minR: 0.8, maxR: 2.5, opacity: 0.85 },
-    { color: '#998154', count: 900, minR: 0.6, maxR: 1.8, opacity: 0.9 },
-    { color: '#7A643B', count: 450, minR: 0.5, maxR: 1.4, opacity: 0.8 },
-    { color: '#4E3A1C', count: 200, minR: 0.4, maxR: 1.1, opacity: 0.75 }, // dark pores
-    { color: '#D9C8A1', count: 1200, minR: 0.8, maxR: 2.8, opacity: 0.75 },
-    { color: '#EFE3C6', count: 700, minR: 0.5, maxR: 2.0, opacity: 0.8 },
-  ];
-
-  for (const layer of layers) {
-    ctx.fillStyle = layer.color;
-    ctx.globalAlpha = layer.opacity;
-    for (let i = 0; i < layer.count; i++) {
-      const x = random() * 256;
-      const y = random() * 256;
-      const r = layer.minR + random() * (layer.maxR - layer.minR);
-      const aspect = 0.55 + random() * 0.9;
-      const rot = random() * Math.PI;
-      ctx.beginPath();
-      ctx.ellipse(x, y, r, r * aspect, rot, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  // Soft pixel-level noise pass
-  ctx.globalAlpha = 1.0;
-  const imgData = ctx.getImageData(0, 0, 256, 256);
-  const d = imgData.data;
-  for (let i = 0; i < d.length; i += 4) {
-    const n = (random() - 0.5) * 16;
-    d[i] = Math.min(255, Math.max(0, d[i] + n));
-    d[i + 1] = Math.min(255, Math.max(0, d[i + 1] + n * 0.9));
-    d[i + 2] = Math.min(255, Math.max(0, d[i + 2] + n * 0.75));
-  }
-  ctx.putImageData(imgData, 0, 0);
-
-  return canvas.toDataURL('image/png');
-}
-
-/**
  * 3D Physical Pushpin / Thumb Tack component with realistic specular lighting,
  * metallic collar, needle, and angled drop-shadow.
  */
@@ -99,7 +36,7 @@ function PushPin({ color = 'brass', style = {}, popped = false }) {
         transition: 'transform 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.22s ease',
         transform: popped ? 'translateY(-26px) rotate(-22deg) scale(0.65)' : 'translateY(0) rotate(0deg) scale(1)',
         opacity: popped ? 0 : 1,
-        filter: 'drop-shadow(3px 6px 5px rgba(20, 14, 8, 0.48))',
+        filter: 'drop-shadow(3px 6px 5px rgba(20, 14, 8, 0.38))',
         ...style,
       }}
     >
@@ -283,7 +220,6 @@ function createWithoutLimitXDocumentTexture() {
 export default function BeforeAfterStage() {
   const paperRef = useRef(null);
   const [textureUrl, setTextureUrl] = useState('');
-  const [corkTextureUrl, setCorkTextureUrl] = useState('');
   const [isCrumpled, setIsCrumpled] = useState(false);
   const [isDiscarded, setIsDiscarded] = useState(false);
   const [resetKey, setResetKey] = useState(0);
@@ -291,8 +227,6 @@ export default function BeforeAfterStage() {
   useEffect(() => {
     const url = createWithoutLimitXDocumentTexture();
     setTextureUrl(url);
-    const corkUrl = createRealisticCorkTexture();
-    setCorkTextureUrl(corkUrl);
   }, []);
 
   // Action: Crumple and Toss off the meeting board
@@ -326,8 +260,116 @@ export default function BeforeAfterStage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Keyframe animation for With LimitX rising onto the board */}
+      {/* StudioBoard Custom Physical Whiteboard & Notice Styles */}
       <style>{`
+        /* Realistic Brushed Champagne Metallic Aluminum Frame */
+        .studioboard-frame {
+          background: linear-gradient(135deg, #FAF8F5 0%, #EAE6DD 25%, #C8C2B5 50%, #FAF8F5 75%, #D4CEBF 100%);
+          padding: 10px;
+          border-radius: 16px;
+          box-shadow: 
+            0 25px 50px -12px rgba(28, 27, 24, 0.24),
+            0 4px 12px rgba(28, 27, 24, 0.1),
+            inset 0 1px 1px rgba(255, 255, 255, 0.95),
+            inset 0 -2px 4px rgba(28, 27, 24, 0.18);
+          position: relative;
+          display: flex;
+          flex-direction: column;
+        }
+        @media (min-width: 768px) {
+          .studioboard-frame {
+            padding: 12px;
+            border-radius: 20px;
+          }
+        }
+
+        /* Metallic Corner Bumpers */
+        .corner-cap {
+          position: absolute;
+          width: 22px;
+          height: 22px;
+          background: linear-gradient(135deg, #3D352B, #1C1B18);
+          z-index: 25;
+          box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35);
+        }
+        .corner-tl { top: 0; left: 0; border-top-left-radius: 16px; border-bottom-right-radius: 8px; }
+        .corner-tr { top: 0; right: 0; border-top-right-radius: 16px; border-bottom-left-radius: 8px; }
+        .corner-bl { bottom: 0; left: 0; border-bottom-left-radius: 16px; border-top-right-radius: 8px; }
+        .corner-br { bottom: 0; right: 0; border-bottom-right-radius: 16px; border-top-left-radius: 8px; }
+
+        /* Ceramic Limestone Whiteboard Surface */
+        .studioboard-surface {
+          background-color: #FAF8F5;
+          background-image: 
+            radial-gradient(at 20% 20%, rgba(255, 255, 255, 0.95) 0px, transparent 60%),
+            radial-gradient(at 80% 80%, rgba(240, 235, 225, 0.65) 0px, transparent 60%),
+            linear-gradient(to right, rgba(140, 130, 115, 0.12) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(140, 130, 115, 0.12) 1px, transparent 1px);
+          background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+          box-shadow: 
+            inset 0 2px 8px rgba(28, 27, 24, 0.12),
+            inset 0 0 1px rgba(28, 27, 24, 0.25);
+          border-radius: 8px;
+          position: relative;
+          overflow: hidden;
+          min-height: 580px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justifyContent: center;
+          padding: 24px 16px;
+        }
+
+        /* Bottom Metallic Marker Tray */
+        .studioboard-tray {
+          background: linear-gradient(180deg, #FAF8F5 0%, #EAE6DD 40%, #C8C2B5 85%, #9E9685 100%);
+          box-shadow: 
+            0 10px 18px -4px rgba(28, 27, 24, 0.25),
+            inset 0 2px 2px rgba(255, 255, 255, 0.85),
+            inset 0 -2px 4px rgba(28, 27, 24, 0.2);
+          border-bottom-left-radius: 14px;
+          border-bottom-right-radius: 14px;
+        }
+
+        /* Tray Marker Hover */
+        .tray-marker {
+          transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .tray-marker:hover {
+          transform: translateY(-3px);
+        }
+
+        /* Classic Sticky Note Curl Style */
+        .sticky-style {
+          border-radius: 2px 2px 14px 2px;
+          box-shadow: 
+            0 6px 14px -2px rgba(28, 27, 24, 0.14),
+            0 2px 4px -1px rgba(28, 27, 24, 0.08),
+            inset 0 -18px 24px -16px rgba(0, 0, 0, 0.06);
+          position: relative;
+        }
+        .sticky-style::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          right: 0;
+          width: 22px;
+          height: 22px;
+          background: linear-gradient(135deg, transparent 48%, rgba(0,0,0,0.06) 50%, rgba(255,255,255,0.45) 100%);
+          border-bottom-right-radius: 12px;
+          pointer-events: none;
+        }
+
+        /* Formal Pinned Notice Paper Style */
+        .formal-style {
+          border-radius: 6px;
+          border: 1px solid rgba(140, 130, 115, 0.35);
+          box-shadow: 
+            0 10px 22px -5px rgba(28, 27, 24, 0.14),
+            0 4px 8px -2px rgba(28, 27, 24, 0.08);
+          position: relative;
+        }
+
         @keyframes blueprintAppearOnBoard {
           0% {
             opacity: 0;
@@ -338,83 +380,28 @@ export default function BeforeAfterStage() {
             transform: scale(1) translateY(0);
           }
         }
+
         @media (min-width: 980px) {
           .pinboard-sticky-note-left,
           .pinboard-sticky-note-right {
-            display: block !important;
+            display: flex !important;
           }
         }
       `}</style>
 
       {/* =====================================================================
-          AUTHENTIC ARCHITECTURAL MEETING CORKBOARD / WAR-ROOM PINBOARD
+          STUDIOBOARD WHITEBOARD ASSEMBLY (METALLIC BEZEL + CORNER BUMPERS)
           ===================================================================== */}
-      <div
-        style={{
-          position: 'relative',
-          minHeight: '640px',
-          borderRadius: '8px',
-          background: 'linear-gradient(135deg, #382A1B 0%, #251B10 25%, #3D2D1D 50%, #20170E 75%, #332619 100%)',
-          border: '2px solid #5A432C',
-          boxShadow: '0 32px 72px -14px rgba(18, 12, 7, 0.55), 0 12px 28px -6px rgba(18, 12, 7, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.3)',
-          padding: '18px',
-          display: 'flex',
-          flexDirection: 'column',
-          transition: 'all 0.3s ease',
-        }}
-      >
-        {/* Brass Hanging Loops at Top of Frame */}
-        <div style={{ position: 'absolute', top: '-7px', left: '22%', width: '16px', height: '8px', borderTop: '2px solid #C68A2C', borderLeft: '2px solid #C68A2C', borderRight: '2px solid #C68A2C', borderRadius: '4px 4px 0 0', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', top: '-7px', right: '22%', width: '16px', height: '8px', borderTop: '2px solid #C68A2C', borderLeft: '2px solid #C68A2C', borderRight: '2px solid #C68A2C', borderRadius: '4px 4px 0 0', pointerEvents: 'none' }} />
+      <div className="studioboard-frame w-full">
+        {/* Metallic Corner Protective Caps */}
+        <div className="corner-cap corner-tl" />
+        <div className="corner-cap corner-tr" />
+        <div className="corner-cap corner-bl" />
+        <div className="corner-cap corner-br" />
 
-        {/* 45° Miter Corner Join Lines (Realistic Wood Frame Construction) */}
-        <div style={{ position: 'absolute', top: '2px', left: '2px', width: '22px', height: '22px', borderRight: '1px solid rgba(0,0,0,0.5)', borderBottom: '1px solid rgba(255,255,255,0.15)', transform: 'rotate(45deg)', transformOrigin: 'top left', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', top: '2px', right: '2px', width: '22px', height: '22px', borderLeft: '1px solid rgba(0,0,0,0.5)', borderBottom: '1px solid rgba(255,255,255,0.15)', transform: 'rotate(-45deg)', transformOrigin: 'top right', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '2px', left: '2px', width: '22px', height: '22px', borderRight: '1px solid rgba(255,255,255,0.15)', borderTop: '1px solid rgba(0,0,0,0.5)', transform: 'rotate(-45deg)', transformOrigin: 'bottom left', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '2px', right: '2px', width: '22px', height: '22px', borderLeft: '1px solid rgba(255,255,255,0.15)', borderTop: '1px solid rgba(0,0,0,0.5)', transform: 'rotate(45deg)', transformOrigin: 'bottom right', pointerEvents: 'none' }} />
-
-        {/* Solid Brass L-Corner Reinforcement Brackets in all 4 Corners */}
-        {/* Top-Left */}
-        <div style={{ position: 'absolute', top: '7px', left: '7px', width: '24px', height: '24px', borderTop: '3px solid #C68A2C', borderLeft: '3px solid #C68A2C', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#F3C978', boxShadow: '0 0 2px rgba(0,0,0,0.6)' }} />
-        </div>
-        {/* Top-Right */}
-        <div style={{ position: 'absolute', top: '7px', right: '7px', width: '24px', height: '24px', borderTop: '3px solid #C68A2C', borderRight: '3px solid #C68A2C', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#F3C978', boxShadow: '0 0 2px rgba(0,0,0,0.6)' }} />
-        </div>
-        {/* Bottom-Left */}
-        <div style={{ position: 'absolute', bottom: '7px', left: '7px', width: '24px', height: '24px', borderBottom: '3px solid #C68A2C', borderLeft: '3px solid #C68A2C', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#F3C978', boxShadow: '0 0 2px rgba(0,0,0,0.6)' }} />
-        </div>
-        {/* Bottom-Right */}
-        <div style={{ position: 'absolute', bottom: '7px', right: '7px', width: '24px', height: '24px', borderBottom: '3px solid #C68A2C', borderRight: '3px solid #C68A2C', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#F3C978', boxShadow: '0 0 2px rgba(0,0,0,0.6)' }} />
-        </div>
-
-        {/* Board Surface (Tactile Real Cork / Bulletin Pinboard Texture) */}
-        <div
-          style={{
-            flex: 1,
-            position: 'relative',
-            borderRadius: '4px',
-            backgroundColor: '#C2AE88',
-            backgroundImage: corkTextureUrl
-              ? `radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.18) 0%, rgba(25, 18, 12, 0.28) 100%), url(${corkTextureUrl})`
-              : 'none',
-            backgroundRepeat: 'repeat',
-            backgroundSize: 'auto, 256px 256px',
-            border: '1.5px solid #C68A2C',
-            boxShadow: 'inset 4px 6px 24px rgba(20, 14, 8, 0.5), inset -2px -2px 10px rgba(255, 255, 255, 0.2)',
-            padding: '24px 20px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '600px',
-            overflow: 'hidden',
-          }}
-        >
-          {/* Top Board Frame Header Bar */}
+        {/* Ceramic Limestone Whiteboard Surface with 32px Alignment Grid */}
+        <div className="studioboard-surface w-full">
+          {/* Top Board Navigation Bar */}
           <div
             style={{
               position: 'absolute',
@@ -429,17 +416,17 @@ export default function BeforeAfterStage() {
               gap: '10px',
             }}
           >
-            {/* Board Brass Plaque Title Tag */}
+            {/* Board Title Tag */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: 'linear-gradient(180deg, #FAF8F5 0%, #EAE6DD 100%)',
+                background: 'rgba(255, 255, 255, 0.95)',
                 padding: '4px 10px',
-                borderRadius: '3px',
-                border: '1px solid #C68A2C',
-                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
+                borderRadius: '6px',
+                border: '1px solid #DCD7CD',
+                boxShadow: '0 2px 6px rgba(28, 27, 24, 0.06)',
               }}
             >
               <span
@@ -451,14 +438,14 @@ export default function BeforeAfterStage() {
                   letterSpacing: '0.04em',
                 }}
               >
-                {isDiscarded ? '● SPECIFICATION APPROVED' : '● WAR ROOM REVIEW: UNGUARDED'}
+                {isDiscarded ? '● SPECIFICATION APPROVED' : '● STUDIOBOARD REVIEW: UNGUARDED'}
               </span>
               <span style={{ fontSize: '11px', color: '#7A756D', fontFamily: 'var(--font-mono)' }}>
-                | PINBOARD #01
+                | ARCH-01
               </span>
             </div>
 
-            {/* Brushed Brass Drafting Clamp at Top Center of the Document */}
+            {/* Top Magnet / Clamp Holder at Center */}
             <div
               style={{
                 position: 'absolute',
@@ -469,7 +456,7 @@ export default function BeforeAfterStage() {
                 height: '24px',
                 background: 'linear-gradient(180deg, #F3C978 0%, #C68A2C 50%, #995B00 100%)',
                 borderRadius: '3px',
-                boxShadow: '0 4px 10px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.6)',
+                boxShadow: '0 4px 10px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.6)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -477,7 +464,6 @@ export default function BeforeAfterStage() {
                 border: '1px solid #7F4900',
               }}
             >
-              {/* Clamp Grip Texture Bar */}
               <div style={{ width: '84px', height: '2px', background: 'rgba(255, 255, 255, 0.6)' }} />
               <div style={{ position: 'absolute', bottom: '3px', width: '70px', height: '1.5px', background: 'rgba(0, 0, 0, 0.3)' }} />
             </div>
@@ -493,7 +479,7 @@ export default function BeforeAfterStage() {
                     background: '#1C1B18',
                     color: '#FAF8F5',
                     border: '1px solid #C68A2C',
-                    borderRadius: '3px',
+                    borderRadius: '6px',
                     fontFamily: 'var(--font-mono)',
                     fontSize: '12px',
                     fontWeight: 600,
@@ -501,7 +487,7 @@ export default function BeforeAfterStage() {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '7px',
-                    boxShadow: '0 4px 12px rgba(28, 27, 24, 0.25)',
+                    boxShadow: '0 4px 12px rgba(28, 27, 24, 0.2)',
                     transition: 'all 160ms ease',
                   }}
                   onMouseEnter={(e) => {
@@ -525,7 +511,7 @@ export default function BeforeAfterStage() {
                     background: '#FAF8F5',
                     color: '#1C1B18',
                     border: '1px solid #C68A2C',
-                    borderRadius: '3px',
+                    borderRadius: '6px',
                     fontFamily: 'var(--font-mono)',
                     fontSize: '12px',
                     fontWeight: 600,
@@ -533,7 +519,7 @@ export default function BeforeAfterStage() {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '7px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
                     transition: 'all 160ms ease',
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = '#EAE6DD')}
@@ -546,24 +532,23 @@ export default function BeforeAfterStage() {
             </div>
           </div>
 
-          {/* Left Sticky Memo: Audit Finding Note (Pinned with Red Pushpin) */}
+          {/* Left Sticky Note: Audit Finding (Classic Sticky Style with Curl & Red Pushpin) */}
           <div
             style={{
               position: 'absolute',
               bottom: '24px',
               left: '20px',
               maxWidth: '220px',
-              background: '#FFF8E7',
-              border: '1px solid #E8D9B0',
-              borderRadius: '2px',
+              background: 'linear-gradient(165deg, #FEF9C3 0%, #FEF08A 100%)',
+              color: '#422006',
               padding: '12px 14px',
-              boxShadow: '0 6px 16px rgba(28, 20, 10, 0.22)',
               transform: 'rotate(-2.5deg)',
               zIndex: 15,
               pointerEvents: 'none',
               display: 'none',
+              flexDirection: 'column',
             }}
-            className="pinboard-sticky-note-left"
+            className="sticky-style pinboard-sticky-note-left"
           >
             {/* Red Physical 3D PushPin */}
             <PushPin
@@ -576,29 +561,28 @@ export default function BeforeAfterStage() {
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: '#C64835', marginBottom: '4px' }}>
               📌 AUDIT FINDING #04
             </div>
-            <div style={{ fontSize: '11px', color: '#4A4843', lineHeight: 1.45 }}>
+            <div style={{ fontSize: '11px', lineHeight: 1.45 }}>
               Direct origin exposure causes process thread exhaustion under traffic surges. Discard &amp; route via LimitX proxy perimeter.
             </div>
           </div>
 
-          {/* Right Sticky Memo: Architecture Decision Note (Pinned with Brass Pushpin) */}
+          {/* Right Formal Notice: Topology Decision (Formal Notice Paper Style with Brass Pushpin) */}
           <div
             style={{
               position: 'absolute',
               bottom: '24px',
               right: '20px',
               maxWidth: '220px',
-              background: '#FAF8F5',
-              border: '1px solid #DCD7CD',
-              borderRadius: '2px',
+              background: 'linear-gradient(180deg, #FFFFFF 0%, #FAF8F5 100%)',
+              color: '#1C1B18',
               padding: '12px 14px',
-              boxShadow: '0 6px 16px rgba(28, 20, 10, 0.22)',
               transform: 'rotate(2.5deg)',
               zIndex: 15,
               pointerEvents: 'none',
               display: 'none',
+              flexDirection: 'column',
             }}
-            className="pinboard-sticky-note-right"
+            className="formal-style pinboard-sticky-note-right"
           >
             {/* Brass Physical 3D PushPin */}
             <PushPin
@@ -611,7 +595,7 @@ export default function BeforeAfterStage() {
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: '#C68A2C', marginBottom: '4px' }}>
               📋 TOPOLOGY DECISION
             </div>
-            <div style={{ fontSize: '11px', color: '#4A4843', lineHeight: 1.45 }}>
+            <div style={{ fontSize: '11px', color: '#5F5C55', lineHeight: 1.45 }}>
               Standardize on Token Bucket &amp; Sliding Log policies. Inject standard RFC X-RateLimit headers at perimeter gateway.
             </div>
           </div>
@@ -639,11 +623,11 @@ export default function BeforeAfterStage() {
                   color: '#4A4843',
                   marginBottom: '10px',
                   textAlign: 'center',
-                  background: 'rgba(250, 248, 245, 0.95)',
+                  background: 'rgba(255, 255, 255, 0.95)',
                   padding: '5px 14px',
                   borderRadius: '16px',
                   border: '1px solid #C68A2C',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
                 }}
               >
                 {!isCrumpled ? (
@@ -714,9 +698,9 @@ export default function BeforeAfterStage() {
                 marginTop: '32px',
                 background: '#FAF8F5',
                 border: '1px solid #DCD7CD',
-                borderRadius: '3px',
+                borderRadius: '6px',
                 padding: '28px 28px',
-                boxShadow: '0 10px 32px rgba(28, 27, 24, 0.15), 0 0 0 1px rgba(198, 138, 44, 0.45)',
+                boxShadow: '0 10px 32px rgba(28, 27, 24, 0.12), 0 0 0 1px rgba(198, 138, 44, 0.45)',
                 animation: 'blueprintAppearOnBoard 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                 display: 'flex',
                 flexDirection: 'column',
@@ -796,7 +780,7 @@ export default function BeforeAfterStage() {
                   style={{
                     background: '#F5F2EB',
                     border: '1px solid #DCD7CD',
-                    borderRadius: '2px',
+                    borderRadius: '4px',
                     padding: '14px',
                   }}
                 >
@@ -818,7 +802,7 @@ export default function BeforeAfterStage() {
                   style={{
                     background: '#F5F2EB',
                     border: '1px solid #DCD7CD',
-                    borderRadius: '2px',
+                    borderRadius: '4px',
                     padding: '14px',
                   }}
                 >
@@ -840,7 +824,7 @@ export default function BeforeAfterStage() {
                   style={{
                     background: '#F5F2EB',
                     border: '1px solid #DCD7CD',
-                    borderRadius: '2px',
+                    borderRadius: '4px',
                     padding: '14px',
                   }}
                 >
@@ -862,7 +846,7 @@ export default function BeforeAfterStage() {
                   style={{
                     background: '#F5F2EB',
                     border: '1px solid #DCD7CD',
-                    borderRadius: '2px',
+                    borderRadius: '4px',
                     padding: '14px',
                   }}
                 >
@@ -886,7 +870,7 @@ export default function BeforeAfterStage() {
                 style={{
                   background: '#F5F2EB',
                   border: '1px solid #DCD7CD',
-                  borderRadius: '3px',
+                  borderRadius: '4px',
                   padding: '12px 16px',
                   fontFamily: 'var(--font-mono)',
                   fontSize: '11.5px',
@@ -909,12 +893,154 @@ export default function BeforeAfterStage() {
         </div>
       </div>
 
+      {/* =====================================================================
+          PHYSICAL ALUMINUM MARKER TRAY AT BOTTOM (MATCHING REFERENCE EXACTLY)
+          ===================================================================== */}
+      <div
+        className="studioboard-tray"
+        style={{
+          margin: '-4px auto 0',
+          width: '85%',
+          maxWidth: '720px',
+          height: '46px',
+          zIndex: 30,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 24px',
+        }}
+      >
+        {/* Dry-Erase Markers Resting in Tray */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          {/* Black Marker */}
+          <div
+            className="tray-marker"
+            title="Black Dry-Erase Marker"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              height: '24px',
+              width: '64px',
+              borderRadius: '9999px',
+              background: '#FAF8F5',
+              boxShadow: '0 2px 4px rgba(28, 27, 24, 0.15)',
+              border: '1px solid #DCD7CD',
+              overflow: 'hidden',
+              cursor: 'default',
+            }}
+          >
+            <span style={{ width: '16px', height: '100%', background: '#1C1B18', display: 'block' }} />
+            <span style={{ flex: 1, fontSize: '9px', fontWeight: 700, letterSpacing: '0.06em', color: '#1C1B18', textAlign: 'center', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>DRY</span>
+            <span style={{ width: '6px', height: '100%', background: '#1C1B18', display: 'block' }} />
+          </div>
+
+          {/* Amber Gold Marker */}
+          <div
+            className="tray-marker"
+            title="Amber Gold Dry-Erase Marker"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              height: '24px',
+              width: '64px',
+              borderRadius: '9999px',
+              background: '#FAF8F5',
+              boxShadow: '0 2px 4px rgba(28, 27, 24, 0.15)',
+              border: '1px solid #DCD7CD',
+              overflow: 'hidden',
+              cursor: 'default',
+            }}
+          >
+            <span style={{ width: '16px', height: '100%', background: '#C68A2C', display: 'block' }} />
+            <span style={{ flex: 1, fontSize: '9px', fontWeight: 700, letterSpacing: '0.06em', color: '#C68A2C', textAlign: 'center', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>DRY</span>
+            <span style={{ width: '6px', height: '100%', background: '#C68A2C', display: 'block' }} />
+          </div>
+
+          {/* Crimson Red Marker */}
+          <div
+            className="tray-marker"
+            title="Crimson Dry-Erase Marker"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              height: '24px',
+              width: '64px',
+              borderRadius: '9999px',
+              background: '#FAF8F5',
+              boxShadow: '0 2px 4px rgba(28, 27, 24, 0.15)',
+              border: '1px solid #DCD7CD',
+              overflow: 'hidden',
+              cursor: 'default',
+            }}
+          >
+            <span style={{ width: '16px', height: '100%', background: '#C64835', display: 'block' }} />
+            <span style={{ flex: 1, fontSize: '9px', fontWeight: 700, letterSpacing: '0.06em', color: '#C64835', textAlign: 'center', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>DRY</span>
+            <span style={{ width: '6px', height: '100%', background: '#C64835', display: 'block' }} />
+          </div>
+
+          {/* Emerald Green Marker */}
+          <div
+            className="tray-marker"
+            title="Emerald Dry-Erase Marker"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              height: '24px',
+              width: '64px',
+              borderRadius: '9999px',
+              background: '#FAF8F5',
+              boxShadow: '0 2px 4px rgba(28, 27, 24, 0.15)',
+              border: '1px solid #DCD7CD',
+              overflow: 'hidden',
+              cursor: 'default',
+            }}
+          >
+            <span style={{ width: '16px', height: '100%', background: '#2D8A4E', display: 'block' }} />
+            <span style={{ flex: 1, fontSize: '9px', fontWeight: 700, letterSpacing: '0.06em', color: '#2D8A4E', textAlign: 'center', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>DRY</span>
+            <span style={{ width: '6px', height: '100%', background: '#2D8A4E', display: 'block' }} />
+          </div>
+        </div>
+
+        {/* Physical Felt Whiteboard Eraser in Tray */}
+        <div
+          className="tray-marker"
+          title="Felt Whiteboard Eraser"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            width: '68px',
+            height: '26px',
+            borderRadius: '4px',
+            overflow: 'hidden',
+            boxShadow: '0 2px 4px rgba(28, 27, 24, 0.2)',
+            border: '1px solid #5F5C55',
+            cursor: 'default',
+          }}
+        >
+          <div
+            style={{
+              height: '14px',
+              background: 'linear-gradient(90deg, #2C261F 0%, #3D352B 50%, #2C261F 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <span style={{ fontSize: '7.5px', letterSpacing: '0.12em', color: '#FAF8F5', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
+              ERASER
+            </span>
+          </div>
+          <div style={{ flex: 1, background: '#DCD7CD', borderTop: '1px solid #B8B0A0' }} />
+        </div>
+      </div>
+
       {/* 3 Outcome Verification Pills */}
       <div
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
           gap: '12px',
+          marginTop: '8px',
         }}
       >
         <div
