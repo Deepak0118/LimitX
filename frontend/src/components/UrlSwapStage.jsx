@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Check, Copy, ArrowRight, ShieldCheck } from 'lucide-react';
-import { PROXY_BASE } from '../api';
 
-const SAMPLE_PROXY_URL = `${PROXY_BASE}/proxy/api_7f3a9c12`;
+const SAMPLE_PROXY_URL = 'https://edge.limitx.io/proxy/api_7f3a9c12';
 
 export default function UrlSwapStage() {
   const [activeTab, setActiveTab] = useState('env'); // 'env' | 'curl' | 'flow'
