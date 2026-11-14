@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Play,
   Zap,
+  Database,
 } from 'lucide-react';
 
 const VALID_LABELS = [
@@ -14,6 +15,10 @@ const VALID_LABELS = [
   'PUT /profile/settings',
   'POST /auth/token',
   'GET /api/products',
+  'GET /v1/health',
+  'POST /api/webhooks',
+  'GET /v2/feed',
+  'POST /v1/events',
 ];
 
 const ATTACK_LABELS = [
@@ -23,21 +28,17 @@ const ATTACK_LABELS = [
   'SCRAPE /api/export',
   'POST /auth/reset',
   'QUERY /graphql',
+  '429 TOO MANY REQS',
+  'BOT FLOOD /scrape',
 ];
 
 export default function HeroPrecisionStage({ onOpenSetup }) {
   const canvasRef = useRef(null);
   const wrapperRef = useRef(null);
+  const serverRef = useRef(null);
 
   // Traffic simulation mode: 'normal' | 'burst' | 'attack'
   const [trafficMode, setTrafficMode] = useState('normal');
-  const [hudStats, setHudStats] = useState({
-    incoming: '1,240 req/s',
-    shieldedPct: '14.5%',
-    originLoad: '14%',
-    latency: '1.2 ms',
-  });
-
   const [toastMessage, setToastMessage] = useState('');
   const toastTimeoutRef = useRef(null);
 
@@ -58,32 +59,32 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
   const floatingTagsRef = useRef([]);
   const cpuHistoryRef = useRef([14, 13, 14, 15, 14, 13, 14, 14, 15]);
 
-  // Mode configurations
+  // Mode configurations - tuned to clean, realistic production traffic rates
   const modeConfig = {
     normal: {
-      spawnRate: 0.4,
+      spawnRate: 0.18,
       maliciousRatio: 0.2,
-      speedMin: 2.0,
-      speedMax: 3.2,
-      inRateBase: 1240,
+      speedMin: 1.8,
+      speedMax: 2.8,
+      inRateBase: 320,
       cpuBase: 14,
       latencyBase: 1.1,
     },
     burst: {
-      spawnRate: 1.2,
+      spawnRate: 0.5,
       maliciousRatio: 0.65,
-      speedMin: 3.0,
-      speedMax: 4.8,
-      inRateBase: 8400,
+      speedMin: 2.6,
+      speedMax: 4.2,
+      inRateBase: 1400,
       cpuBase: 16,
       latencyBase: 1.3,
     },
     attack: {
-      spawnRate: 2.4,
-      maliciousRatio: 0.88,
-      speedMin: 4.0,
-      speedMax: 6.2,
-      inRateBase: 48600,
+      spawnRate: 0.9,
+      maliciousRatio: 0.85,
+      speedMin: 3.4,
+      speedMax: 5.2,
+      inRateBase: 4800,
       cpuBase: 18,
       latencyBase: 1.4,
     },
@@ -94,19 +95,31 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
     const w = customWidth || (wrapperRef.current ? wrapperRef.current.clientWidth : 1200);
     const cfg = modeConfig[modeRef.current] || modeConfig.normal;
     const isMalicious = forceMalicious !== null ? forceMalicious : Math.random() < cfg.maliciousRatio;
-    const margin = 48;
-    const x = customX !== null ? customX : margin + Math.random() * (w - margin * 2);
-    const speed = cfg.speedMin + Math.random() * (cfg.speedMax - cfg.speedMin);
-    const showLabel = Math.random() < (modeRef.current === 'attack' ? 0.22 : 0.4);
-
-    let chosenLabel = null;
-    if (showLabel) {
-      if (isMalicious) {
-        chosenLabel = ATTACK_LABELS[Math.floor(Math.random() * ATTACK_LABELS.length)];
+    
+    // Bimodal distribution: 88% on flanks, sparse in the center corridor to keep title clean
+    let x;
+    if (customX !== null) {
+      x = customX;
+    } else {
+      const zoneChoice = Math.random();
+      if (zoneChoice < 0.44) {
+        // Left Flank (44% frequency)
+        x = 42 + Math.random() * (w * 0.28);
+      } else if (zoneChoice < 0.88) {
+        // Right Flank (44% frequency)
+        x = w * 0.68 + Math.random() * (w * 0.28);
       } else {
-        chosenLabel = VALID_LABELS[Math.floor(Math.random() * VALID_LABELS.length)];
+        // Center Corridor (sparse 12% frequency so headline text remains unblocked)
+        x = w * 0.34 + Math.random() * (w * 0.32);
       }
     }
+
+    const speed = cfg.speedMin + Math.random() * (cfg.speedMax - cfg.speedMin);
+
+    // 100% of requests have clean endpoint labels per user request
+    const chosenLabel = isMalicious
+      ? ATTACK_LABELS[Math.floor(Math.random() * ATTACK_LABELS.length)]
+      : VALID_LABELS[Math.floor(Math.random() * VALID_LABELS.length)];
 
     packetsRef.current.push({
       x,
@@ -124,12 +137,12 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
     (e) => {
       if (e) e.stopPropagation();
       const w = wrapperRef.current ? wrapperRef.current.clientWidth : 1200;
-      for (let i = 0; i < 22; i++) {
+      for (let i = 0; i < 11; i++) {
         spawnPacket(true, null, w);
         const p = packetsRef.current[packetsRef.current.length - 1];
         if (p) {
-          p.y = -10 - Math.random() * 55;
-          p.vy = 5.2 + Math.random() * 1.8;
+          p.y = -10 - Math.random() * 45;
+          p.vy = 4.6 + Math.random() * 1.5;
         }
       }
       showToast('⚡ Injected burst wave — 100% of excess requests filtered at Ozone Shield');
@@ -144,14 +157,14 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
     const clickX = e.clientX - rect.left;
     const w = rect.width;
 
-    for (let i = 0; i < 14; i++) {
-      const offsetX = (Math.random() - 0.5) * 120;
+    for (let i = 0; i < 7; i++) {
+      const offsetX = (Math.random() - 0.5) * 100;
       const spawnX = Math.min(Math.max(clickX + offsetX, 36), w - 36);
       spawnPacket(true, spawnX, w);
       const p = packetsRef.current[packetsRef.current.length - 1];
       if (p) {
-        p.y = -10 - Math.random() * 40;
-        p.vy = 4.8 + Math.random() * 1.8;
+        p.y = -10 - Math.random() * 30;
+        p.vy = 4.2 + Math.random() * 1.5;
       }
     }
   };
@@ -213,17 +226,17 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
       const normal = getShieldNormal(x);
 
       for (let i = 0; i < sparkCount; i++) {
-        const spread = (Math.random() - 0.5) * 2.2;
-        const speed = 1.4 + Math.random() * 3.0;
+        const spread = (Math.random() - 0.5) * 1.8;
+        const speed = 1.0 + Math.random() * 1.8;
         sparksRef.current.push({
           x,
           y: y - 2,
           vx: (normal.nx + spread) * speed,
-          vy: normal.ny * (0.65 + Math.random() * 0.85) * speed,
+          vy: normal.ny * (0.55 + Math.random() * 0.55) * speed,
           life: 1.0,
-          decay: 0.032 + Math.random() * 0.02,
+          decay: 0.036 + Math.random() * 0.02,
           color: Math.random() > 0.35 ? '#A83B2B' : '#D96B27',
-          size: 1.5 + Math.random() * 1.5,
+          size: 1.4 + Math.random() * 1.2,
         });
       }
 
@@ -358,7 +371,7 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
     }
 
     // Render request pills with motion speed trails
-    function drawPacketPill(p) {
+    function drawPacketPill(p, serverTargetY) {
       ctx.save();
 
       let strokeColor = '#DCD7CD';
@@ -373,20 +386,28 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
         trailColor = 'rgba(168, 59, 43, 0.28)';
         dotColor = '#A83B2B';
       } else if (p.passedShield) {
-        strokeColor = '#DCD7CD';
+        strokeColor = '#CBE8D5';
         textColor = '#1C1B18';
-        trailColor = 'rgba(140, 136, 127, 0.25)';
-        dotColor = '#1C1B18';
+        trailColor = 'rgba(45, 138, 78, 0.25)';
+        dotColor = '#2D8A4E';
+      }
+
+      // Smooth fade into server intake port as packet enters the chassis
+      if (p.passedShield && serverTargetY) {
+        const remainingY = serverTargetY - p.y;
+        if (remainingY < 24) {
+          ctx.globalAlpha = Math.max(0.12, remainingY / 24);
+        }
       }
 
       // Motion Trail
-      const trailGrad = ctx.createLinearGradient(p.x, p.y - 24, p.x, p.y);
+      const trailGrad = ctx.createLinearGradient(p.x - p.vx * 2, p.y - 22, p.x, p.y);
       trailGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
       trailGrad.addColorStop(1, trailColor);
       ctx.strokeStyle = trailGrad;
       ctx.lineWidth = 1.6;
       ctx.beginPath();
-      ctx.moveTo(p.x, p.y - 24);
+      ctx.moveTo(p.x - p.vx * 2, p.y - 22);
       ctx.lineTo(p.x, p.y);
       ctx.stroke();
 
@@ -483,8 +504,53 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
         ctx.restore();
       }
 
-      // Update & Draw Packets
-      const serverFloorY = height - 120;
+      // Server Intake Target coordinates (dynamic measurement from serverRef)
+      let serverTargetX = width / 2;
+      let serverTargetY = height - 120;
+      if (serverRef.current && wrapper) {
+        const sRect = serverRef.current.getBoundingClientRect();
+        const wRect = wrapper.getBoundingClientRect();
+        serverTargetX = sRect.left - wRect.left + sRect.width / 2;
+        serverTargetY = sRect.top - wRect.top; // exact top intake slot
+      }
+
+      // Draw faint routing conduits converging to server intake
+      ctx.save();
+      ctx.strokeStyle = 'rgba(155, 134, 114, 0.12)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 5]);
+
+      const leftShieldX = width * 0.22;
+      const leftShieldY = getShieldY(leftShieldX);
+      ctx.beginPath();
+      ctx.moveTo(leftShieldX, leftShieldY);
+      ctx.bezierCurveTo(
+        leftShieldX, (leftShieldY + serverTargetY) * 0.55,
+        serverTargetX - 45, (leftShieldY + serverTargetY) * 0.65,
+        serverTargetX - 16, serverTargetY
+      );
+      ctx.stroke();
+
+      const rightShieldX = width * 0.78;
+      const rightShieldY = getShieldY(rightShieldX);
+      ctx.beginPath();
+      ctx.moveTo(rightShieldX, rightShieldY);
+      ctx.bezierCurveTo(
+        rightShieldX, (rightShieldY + serverTargetY) * 0.55,
+        serverTargetX + 45, (rightShieldY + serverTargetY) * 0.65,
+        serverTargetX + 16, serverTargetY
+      );
+      ctx.stroke();
+
+      const centerShieldY = getShieldY(serverTargetX);
+      ctx.beginPath();
+      ctx.moveTo(serverTargetX, centerShieldY);
+      ctx.lineTo(serverTargetX, serverTargetY);
+      ctx.stroke();
+
+      ctx.restore();
+
+      // Update & Draw Packets (All passed packets dynamically steer and merge into server intake)
       for (let i = packetsRef.current.length - 1; i >= 0; i--) {
         const p = packetsRef.current[i];
         p.x += p.vx;
@@ -499,18 +565,48 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
             continue;
           } else {
             p.passedShield = true;
-            p.vy = Math.min(p.vy * 0.78, 2.5);
-            p.vx += (width / 2 - p.x) * 0.0075;
+            // Calmer, gentle speed reduction when crossing the shield layer (no sudden speed increase)
+            p.vy = Math.max(0.85, Math.min(p.vy * 0.46, 1.25));
             triggerShieldPass(p.x, shieldY);
           }
         }
 
-        if (p.passedShield && p.y >= serverFloorY) {
-          packetsRef.current.splice(i, 1);
-          continue;
+        // Steer all passed packets smoothly into the server intake port
+        if (p.passedShield) {
+          const remainingY = Math.max(1, serverTargetY - p.y);
+          const distX = serverTargetX - p.x;
+
+          // Required horizontal speed to reach serverTargetX exactly as p.y reaches serverTargetY
+          const idealVx = (distX / remainingY) * p.vy;
+
+          // Smooth curved steering towards the server
+          p.vx += (idealVx - p.vx) * 0.14;
+          p.vx = Math.max(-2.6, Math.min(2.6, p.vx));
+
+          // Gentle vertical speed control (no acceleration, soft glide)
+          p.vy = Math.max(0.85, Math.min(p.vy, 1.25));
+          if (remainingY < 32) {
+            p.vy = Math.max(0.65, p.vy * 0.94);
+          }
+
+          // Packet reaches server intake slot -> merge and absorb into server!
+          if (p.y >= serverTargetY - 4) {
+            if (ripplesRef.current.length < 24) {
+              ripplesRef.current.push({
+                x: serverTargetX,
+                y: serverTargetY,
+                radius: 3,
+                maxRadius: 28,
+                life: 0.85,
+                color: '198, 138, 44',
+              });
+            }
+            packetsRef.current.splice(i, 1);
+            continue;
+          }
         }
 
-        drawPacketPill(p);
+        drawPacketPill(p, serverTargetY);
       }
 
       // Update & Draw Physical Ricochet Sparks
@@ -553,34 +649,11 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
         ctx.restore();
       }
 
-      // Update HUD telemetry counters every 280ms
-      if (time - lastTelemetryUpdate > 280) {
-        lastTelemetryUpdate = time;
-        const jitterIn = Math.floor((Math.random() - 0.5) * (cfg.inRateBase * 0.08));
-        const inVal = Math.max(100, cfg.inRateBase + jitterIn);
-        const passVal = 1060 + Math.floor((Math.random() - 0.5) * 45);
-        const blockVal = Math.max(0, inVal - passVal);
-        const shielded = ((blockVal / inVal) * 100).toFixed(1);
-
-        const cpuJitter = cfg.cpuBase + Math.floor((Math.random() - 0.5) * 3);
-
-        setHudStats({
-          incoming: `${inVal.toLocaleString()} req/s`,
-          shieldedPct: `${shielded}%`,
-          originLoad: `${cpuJitter}%`,
-          latency: `${(cfg.latencyBase + (Math.random() * 0.2 - 0.1)).toFixed(1)} ms`,
-        });
-
-        // Update sparkline history
-        cpuHistoryRef.current.shift();
-        cpuHistoryRef.current.push(cpuJitter);
-      }
-
       animationFrameId = requestAnimationFrame(render);
     }
 
-    // Seed initial packet rain
-    for (let i = 0; i < 20; i++) {
+    // Seed initial packet rain (gentle, non-crowded start)
+    for (let i = 0; i < 8; i++) {
       spawnPacket(null, null, width);
       const p = packetsRef.current[packetsRef.current.length - 1];
       if (p) p.y = Math.random() * (height * 0.4);
@@ -593,15 +666,6 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
       window.removeEventListener('resize', resize);
     };
   }, [spawnPacket]);
-
-  // Compute live sparkline SVG path
-  const cpuSparklinePath = cpuHistoryRef.current
-    .map((val, idx) => {
-      const px = idx * 12;
-      const py = 18 - ((val - 10) / 15) * 8;
-      return `${idx === 0 ? 'M' : 'L'}${px},${py.toFixed(1)}`;
-    })
-    .join(' ');
 
   return (
     <section
@@ -720,41 +784,43 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
             pointerEvents: 'auto',
           }}
         >
-          {/* Premium Architectural Display Title in Plus Jakarta Sans */}
+          {/* Professional Swiss-Geometric Architectural Display Title in Archivo */}
           <h1
             style={{
-              fontFamily: '"Plus Jakarta Sans", var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-              fontSize: 'clamp(54px, 7.2vw, 86px)',
+              fontFamily: '"Archivo", "Plus Jakarta Sans", var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+              fontSize: 'clamp(56px, 7.8vw, 92px)',
               fontWeight: 800,
-              lineHeight: 1.02,
-              letterSpacing: '-0.04em',
+              lineHeight: 1.0,
+              letterSpacing: '-0.045em',
               color: '#1C1B18',
-              background: 'linear-gradient(180deg, #181512 15%, #2F2A24 60%, #584F44 100%)',
+              background: 'linear-gradient(180deg, #181512 20%, #2A251F 70%, #524A3E 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              margin: '0 auto 14px',
+              margin: '0 auto 16px',
               textAlign: 'center',
-              filter: 'drop-shadow(0 2px 18px rgba(30, 25, 20, 0.08))',
+              filter: 'drop-shadow(0 2px 24px rgba(28, 27, 24, 0.08))',
             }}
           >
             Rate Limiter
           </h1>
 
-          {/* Clean User-POV Subtitle */}
+          {/* Clean Subtitle with Increased Font Weight */}
           <p
             style={{
-              margin: '0 auto 26px',
-              fontSize: 'clamp(15.5px, 1.7vw, 17.5px)',
-              color: '#5F5C55',
-              maxWidth: '520px',
-              lineHeight: 1.6,
+              margin: '0 auto 28px',
+              fontSize: 'clamp(16px, 1.8vw, 18.5px)',
+              fontWeight: 600,
+              color: '#34312A',
+              maxWidth: '560px',
+              lineHeight: 1.55,
               textAlign: 'center',
+              letterSpacing: '-0.012em',
             }}
           >
             Stop traffic spikes and abusive bursts before they reach your origin.
           </p>
 
-          {/* Action CTAs in Warm Limestone & Ivory Palette */}
+          {/* Attractive High-Contrast Action CTAs */}
           <div
             style={{
               display: 'flex',
@@ -764,350 +830,446 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
               gap: '14px',
             }}
           >
-            {/* Primary Button matching Login Page & Git style */}
+            {/* Primary Button */}
             <Link
               to="/auth?mode=signup"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: '#1C1B18',
+                background: '#181715',
                 color: '#FAF8F5',
-                padding: '12px 24px',
-                borderRadius: '2px',
-                fontSize: '14px',
-                fontWeight: 500,
+                padding: '13px 26px',
+                borderRadius: '6px',
+                fontSize: '14.5px',
+                fontWeight: 600,
+                letterSpacing: '-0.01em',
                 textDecoration: 'none',
-                boxShadow: '0 2px 10px rgba(28, 27, 24, 0.12)',
-                transition: 'all 160ms ease',
+                boxShadow: '0 1px 0 rgba(255, 255, 255, 0.16) inset, 0 4px 16px rgba(24, 23, 21, 0.22), 0 1px 3px rgba(24, 23, 21, 0.12)',
+                transition: 'all 180ms cubic-bezier(0.16, 1, 0.3, 1)',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#2E2B26';
-                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.background = '#2B2823';
+                e.currentTarget.style.transform = 'translateY(-1.5px)';
+                e.currentTarget.style.boxShadow = '0 1px 0 rgba(255, 255, 255, 0.2) inset, 0 6px 22px rgba(24, 23, 21, 0.28)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#1C1B18';
+                e.currentTarget.style.background = '#181715';
                 e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 1px 0 rgba(255, 255, 255, 0.16) inset, 0 4px 16px rgba(24, 23, 21, 0.22), 0 1px 3px rgba(24, 23, 21, 0.12)';
               }}
             >
-              Get Started Free <ArrowRight size={14} />
+              <span>Get Started Free</span>
+              <ArrowRight size={14} />
             </Link>
 
-            {/* Secondary Button */}
-            <button
-              type="button"
-              onClick={onOpenSetup}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: '#FBF9F5',
-                color: '#1C1B18',
-                border: '1px solid #DCD7CD',
-                padding: '12px 22px',
-                borderRadius: '2px',
-                fontSize: '14px',
-                fontWeight: 500,
-                cursor: 'pointer',
-                transition: 'all 160ms ease',
-                boxShadow: '0 1px 3px rgba(28, 27, 24, 0.04)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#1C1B18';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#DCD7CD';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-            >
-              <Play size={13} style={{ fill: '#1C1B18' }} /> See How It Works
-            </button>
-
-            {/* Burst Demo Pill */}
+            {/* Attractive Burst Simulation Trigger */}
             <button
               type="button"
               onClick={triggerBurstWave}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
-                background: '#FBF9F5',
+                gap: '8px',
+                background: '#FAF8F5',
                 color: '#1C1B18',
-                border: '1px solid #DCD7CD',
-                padding: '12px 18px',
-                borderRadius: '2px',
-                fontSize: '13.5px',
-                fontWeight: 500,
+                border: '1px solid #D4CEBF',
+                padding: '12.5px 22px',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: 600,
+                letterSpacing: '-0.01em',
                 cursor: 'pointer',
-                transition: 'all 160ms ease',
+                transition: 'all 180ms cubic-bezier(0.16, 1, 0.3, 1)',
+                boxShadow: '0 2px 8px rgba(28, 27, 24, 0.05)',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#1C1B18';
-                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.borderColor = '#C68A2C';
+                e.currentTarget.style.background = '#FFFFFF';
+                e.currentTarget.style.transform = 'translateY(-1.5px)';
+                e.currentTarget.style.boxShadow = '0 4px 18px rgba(198, 138, 44, 0.18)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#DCD7CD';
+                e.currentTarget.style.borderColor = '#D4CEBF';
+                e.currentTarget.style.background = '#FAF8F5';
                 e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(28, 27, 24, 0.05)';
               }}
             >
-              <Zap size={14} style={{ color: '#D96B27' }} /> Test Traffic Burst
+              <Zap size={14} style={{ color: '#C68A2C', fill: '#C68A2C' }} />
+              <span>Test Traffic Burst</span>
             </button>
+          </div>
+
+          {/* Interactive Traffic Simulation Mode Switcher (Sleek Floating Pill Bar) */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              marginTop: '20px',
+              padding: '4px 6px',
+              background: 'rgba(251, 249, 245, 0.95)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid #DCD7CD',
+              borderRadius: '9999px',
+              boxShadow: '0 2px 10px rgba(28, 27, 24, 0.05)',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '10.5px',
+                fontFamily: 'var(--font-mono, monospace)',
+                color: '#8C887F',
+                padding: '0 8px 0 10px',
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+              }}
+            >
+              SIMULATION:
+            </span>
+            {[
+              { id: 'normal', label: 'Normal Flow', dot: '#2D8A4E' },
+              { id: 'burst', label: 'Traffic Burst', dot: '#D96B27' },
+              { id: 'attack', label: 'Bot Attack Spike', dot: '#A83B2B' },
+            ].map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setTrafficMode(m.id)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '5px 13px',
+                  borderRadius: '9999px',
+                  border: 'none',
+                  background: trafficMode === m.id ? '#1C1B18' : 'transparent',
+                  color: trafficMode === m.id ? '#FAF8F5' : '#5F5C55',
+                  fontSize: '12px',
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontWeight: trafficMode === m.id ? 600 : 500,
+                  cursor: 'pointer',
+                  transition: 'all 160ms cubic-bezier(0.16, 1, 0.3, 1)',
+                  boxShadow: trafficMode === m.id ? '0 2px 8px rgba(28, 27, 24, 0.18)' : 'none',
+                }}
+              >
+                <span
+                  style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    background:
+                      trafficMode === m.id
+                        ? m.id === 'attack'
+                          ? '#FF8A80'
+                          : m.id === 'burst'
+                          ? '#FFD591'
+                          : '#72F1B8'
+                        : m.dot,
+                  }}
+                />
+                <span>{m.label}</span>
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* BOTTOM ZONE: PROTECTED ORIGIN BACKEND & WARM LIMESTONE CONTROL DOCK */}
-        <div style={{ pointerEvents: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {/* Protected Origin Backend Card in Ivory Stone (#FBF9F5) */}
+        {/* =========================================================================
+            BOTTOM ZONE: EXACT 3-TIER SERVER STACK (WARM LIMESTONE GLASSMORPHISM)
+            Frosted translucent glass, warm amber hairlines (no black borders),
+            Amber gold glowing emitters (no green), dynamic real-time activity wave
+            ========================================================================= */}
+        <div
+          style={{
+            pointerEvents: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingBottom: '88px', // Elevated position ("thoda upar bnaa hlka saa upr")
+            marginTop: '10px',
+          }}
+        >
+          {/* Dynamic keyframe animations for warm amber luminescence & activity equalizer */}
+          <style>{`
+            @keyframes liveAmberLed {
+              0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 14px rgba(198, 138, 44, 0.85), 0 0 4px #F5A623;
+              }
+              50% {
+                transform: scale(1.1);
+                box-shadow: 0 0 22px rgba(198, 138, 44, 1), 0 0 7px #F5A623;
+              }
+            }
+            @keyframes liveChampagneLed {
+              0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 10px rgba(229, 192, 123, 0.75);
+              }
+              50% {
+                transform: scale(1.08);
+                box-shadow: 0 0 16px rgba(229, 192, 123, 0.95);
+              }
+            }
+            @keyframes liveEqBar1 {
+              0%, 100% { height: 4px; }
+              50% { height: 13px; }
+            }
+            @keyframes liveEqBar2 {
+              0%, 100% { height: 13px; }
+              50% { height: 5px; }
+            }
+            @keyframes liveEqBar3 {
+              0%, 100% { height: 7px; }
+              50% { height: 14px; }
+            }
+            @keyframes glassServerGlow {
+              0%, 100% {
+                filter: drop-shadow(0 4px 18px rgba(198, 138, 44, 0.12));
+              }
+              50% {
+                filter: drop-shadow(0 6px 28px rgba(198, 138, 44, 0.26));
+              }
+            }
+          `}</style>
+
           <div
+            ref={serverRef}
             style={{
-              background: '#FBF9F5',
-              border: '1px solid #DCD7CD',
-              borderRadius: '8px',
-              padding: '14px 20px',
-              boxShadow: '0 4px 16px rgba(28, 27, 24, 0.06)',
+              position: 'relative',
               display: 'flex',
-              flexWrap: 'wrap',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '14px',
+              gap: '10px',
+              animation: 'glassServerGlow 3.5s ease-in-out infinite',
             }}
           >
-            {/* Left Server Identity */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Luminous Warm Floor Aura (Amber Gold & Warm Limestone) */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '-18px',
+                width: '320px',
+                height: '56px',
+                background:
+                  'radial-gradient(ellipse at 50% 50%, rgba(198, 138, 44, 0.28) 0%, rgba(245, 242, 235, 0.5) 45%, transparent 75%)',
+                filter: 'blur(20px)',
+                pointerEvents: 'none',
+              }}
+            />
+
+            {/* 3 Stacked Server Units (1:1 visual match with user blueprint, styled with warm glassmorphism) */}
+            {[
+              {
+                id: 'srv-1',
+                label: 'SRV-01 · ACTIVE',
+                dot1: '#C68A2C',
+                dot2: '#E5C07B',
+                anim1: 'liveAmberLed 2.2s infinite',
+                anim2: 'liveChampagneLed 1.8s infinite',
+                glow1: '0 0 14px rgba(198, 138, 44, 0.85), 0 0 4px #F5A623',
+                glow2: '0 0 10px rgba(229, 192, 123, 0.75)',
+              },
+              {
+                id: 'srv-2',
+                label: 'SRV-02 · SYNC',
+                dot1: '#C68A2C',
+                dot2: '#E5C07B',
+                anim1: 'liveAmberLed 2.5s infinite',
+                anim2: 'liveChampagneLed 2.1s infinite',
+                glow1: '0 0 14px rgba(198, 138, 44, 0.85), 0 0 4px #F5A623',
+                glow2: '0 0 10px rgba(229, 192, 123, 0.75)',
+              },
+              {
+                id: 'srv-3',
+                label: 'SRV-03 · SHIELDED',
+                dot1: '#C68A2C',
+                dot2: '#8C887F',
+                anim1: 'liveAmberLed 2.4s infinite',
+                anim2: 'none',
+                glow1: '0 0 14px rgba(198, 138, 44, 0.85), 0 0 4px #F5A623',
+                glow2: 'inset 0 1px 2px rgba(255, 255, 255, 0.4)',
+              },
+            ].map((unit, idx) => (
               <div
+                key={unit.id}
                 style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '6px',
-                  background: '#E6E2D9',
-                  border: '1px solid #DCD7CD',
+                  width: 'clamp(230px, 26vw, 275px)',
+                  height: '56px',
+                  borderRadius: '14px',
+                  background:
+                    'linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(251, 249, 245, 0.72) 48%, rgba(240, 236, 227, 0.6) 100%)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  border: '1.2px solid rgba(212, 206, 191, 0.9)',
+                  borderTop: '1.5px solid rgba(255, 255, 255, 0.95)',
+                  boxShadow:
+                    'inset 0 1px 1px rgba(255, 255, 255, 0.95), inset 0 -1px 2px rgba(198, 138, 44, 0.05), 0 8px 24px rgba(28, 27, 24, 0.04), 0 2px 6px rgba(28, 27, 24, 0.03)',
+                  padding: '0 14px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#1C1B18',
+                  justifyContent: 'space-between',
+                  position: 'relative',
+                  transition: 'all 200ms ease',
                 }}
               >
-                <Server size={18} />
-              </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <span
+                {/* Top Unit Translucent Amber Waveguide Intake (Where incoming requests physically enter) */}
+                {idx === 0 && (
+                  <div
                     style={{
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      color: '#1C1B18',
+                      position: 'absolute',
+                      top: '-6px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: '64px',
+                      height: '6px',
+                      background:
+                        'linear-gradient(180deg, rgba(198, 138, 44, 0.95) 0%, rgba(251, 249, 245, 0.8) 100%)',
+                      borderRadius: '4px 4px 0 0',
+                      border: '1px solid rgba(198, 138, 44, 0.6)',
+                      borderBottom: 'none',
+                      boxShadow: '0 -4px 16px rgba(198, 138, 44, 0.5)',
+                      backdropFilter: 'blur(8px)',
                     }}
-                  >
-                    Backend Databases &amp; Services
-                  </span>
-                  <span
-                    style={{
-                      padding: '2px 8px',
-                      borderRadius: '999px',
-                      fontSize: '10px',
-                      fontFamily: 'var(--font-mono, monospace)',
-                      fontWeight: 600,
-                      background: '#E6E2D9',
-                      color: '#1C1B18',
-                      border: '1px solid #DCD7CD',
-                    }}
-                  >
-                    PROTECTED • REAL TRAFFIC ONLY
-                  </span>
-                </div>
-                <div
-                  style={{
-                    fontSize: '11.5px',
-                    color: '#5F5C55',
-                    marginTop: '2px',
-                  }}
-                >
-                  All excess and malicious requests are filtered at the edge before touching your servers.
-                </div>
-              </div>
-            </div>
+                  />
+                )}
 
-            {/* Right CPU Stability Sparkline in Deep Ink (#1C1B18) */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-                borderLeft: '1px solid #DCD7CD',
-                paddingLeft: '16px',
-              }}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                {/* Left Translucent Frosted Glass Display Slot */}
                 <div
                   style={{
+                    width: '56%',
+                    height: '34px',
+                    borderRadius: '8px',
+                    background: 'rgba(255, 255, 255, 0.62)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    border: '1.2px solid rgba(212, 206, 191, 0.75)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    fontFamily: 'var(--font-mono, monospace)',
-                    fontSize: '10px',
-                    color: '#8C887F',
-                    marginBottom: '2px',
+                    justifyContent: 'space-between',
+                    padding: '0 8px 0 10px',
+                    boxShadow:
+                      'inset 0 1px 3px rgba(28, 27, 24, 0.04), 0 0 10px rgba(198, 138, 44, 0.12)',
                   }}
                 >
-                  <span>CPU STABILITY</span>
-                  <span style={{ color: '#1C1B18', fontWeight: 600 }}>{hudStats.originLoad}</span>
+                  {/* Status Indicator & Label */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span
+                      style={{
+                        width: '5px',
+                        height: '5px',
+                        borderRadius: '50%',
+                        background: '#C68A2C',
+                        boxShadow: '0 0 8px rgba(198, 138, 44, 0.8)',
+                        animation: 'liveAmberLed 1.8s infinite',
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono, monospace)',
+                        fontSize: '9px',
+                        fontWeight: 700,
+                        color: '#2B2823',
+                        letterSpacing: '0.03em',
+                      }}
+                    >
+                      {unit.label}
+                    </span>
+                  </div>
+
+                  {/* Real-time 3-Bar Equalizer Activity Wave in Amber Gold */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-end',
+                      gap: '2.5px',
+                      height: '14px',
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: '2px',
+                        background: '#C68A2C',
+                        borderRadius: '1px',
+                        animation: 'liveEqBar1 1.2s ease-in-out infinite',
+                      }}
+                    />
+                    <span
+                      style={{
+                        width: '2px',
+                        background: '#C68A2C',
+                        borderRadius: '1px',
+                        animation: 'liveEqBar2 0.9s ease-in-out infinite',
+                      }}
+                    />
+                    <span
+                      style={{
+                        width: '2px',
+                        background: '#C68A2C',
+                        borderRadius: '1px',
+                        animation: 'liveEqBar3 1.4s ease-in-out infinite',
+                      }}
+                    />
+                  </div>
                 </div>
-                <svg width="96" height="20" style={{ overflow: 'visible' }}>
-                  <path
-                    d={cpuSparklinePath}
-                    fill="none"
-                    stroke="#1C1B18"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+
+                {/* Right Dual Luminous Glowing LEDs (UI Colors: Amber Gold & Warm Champagne) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {/* Status LED 1 (Amber Gold) */}
+                  <span
+                    style={{
+                      width: '12px',
+                      height: '12px',
+                      borderRadius: '50%',
+                      background: unit.dot1,
+                      boxShadow: unit.glow1,
+                      animation: unit.anim1,
+                      border: '1px solid rgba(255, 255, 255, 0.85)',
+                      display: 'inline-block',
+                    }}
                   />
-                </svg>
-              </div>
-
-              <div style={{ textAlign: 'right' }}>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono, monospace)',
-                    fontSize: '9.5px',
-                    color: '#8C887F',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Origin P95
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono, monospace)',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    color: '#1C1B18',
-                  }}
-                >
-                  {hudStats.latency}
+                  {/* Status LED 2 (Champagne / Muted Stone) */}
+                  <span
+                    style={{
+                      width: '12px',
+                      height: '12px',
+                      borderRadius: '50%',
+                      background: unit.dot2,
+                      boxShadow: unit.glow2,
+                      animation: unit.anim2,
+                      border: '1px solid rgba(255, 255, 255, 0.75)',
+                      display: 'inline-block',
+                    }}
+                  />
                 </div>
               </div>
-            </div>
-          </div>
+            ))}
 
-          {/* Interactive Simulation Control Dock in Warm Limestone (#E6E2D9) */}
-          <div
-            style={{
-              background: '#E6E2D9',
-              border: '1px solid #DCD7CD',
-              borderRadius: '6px',
-              padding: '8px 14px',
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '10px',
-            }}
-          >
-            {/* Mode Switcher Buttons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                onClick={() => setTrafficMode('normal')}
-                style={{
-                  background: trafficMode === 'normal' ? '#FBF9F5' : 'transparent',
-                  color: trafficMode === 'normal' ? '#1C1B18' : '#5F5C55',
-                  border: trafficMode === 'normal' ? '1px solid #DCD7CD' : '1px solid transparent',
-                  padding: '5px 12px',
-                  borderRadius: '4px',
-                  fontSize: '11.5px',
-                  fontWeight: trafficMode === 'normal' ? 600 : 500,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  transition: 'all 120ms ease',
-                }}
-              >
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#1C1B18' }} />
-                Normal Flow
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setTrafficMode('burst')}
-                style={{
-                  background: trafficMode === 'burst' ? '#FBF9F5' : 'transparent',
-                  color: trafficMode === 'burst' ? '#1C1B18' : '#5F5C55',
-                  border: trafficMode === 'burst' ? '1px solid #DCD7CD' : '1px solid transparent',
-                  padding: '5px 12px',
-                  borderRadius: '4px',
-                  fontSize: '11.5px',
-                  fontWeight: trafficMode === 'burst' ? 600 : 500,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  transition: 'all 120ms ease',
-                }}
-              >
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#D96B27' }} />
-                Traffic Burst
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setTrafficMode('attack')}
-                style={{
-                  background: trafficMode === 'attack' ? '#FBF9F5' : 'transparent',
-                  color: trafficMode === 'attack' ? '#A83B2B' : '#5F5C55',
-                  border: trafficMode === 'attack' ? '1px solid #E8C4BE' : '1px solid transparent',
-                  padding: '5px 12px',
-                  borderRadius: '4px',
-                  fontSize: '11.5px',
-                  fontWeight: trafficMode === 'attack' ? 600 : 500,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  transition: 'all 120ms ease',
-                }}
-              >
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#A83B2B' }} />
-                Bot Attack Spike
-              </button>
-            </div>
-
-            {/* Live Telemetry Readouts */}
+            {/* Clean Minimal Origin Identity Pill with Glassmorphism */}
             <div
               style={{
+                marginTop: '8px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                fontFamily: 'var(--font-mono, monospace)',
+                gap: '6px',
                 fontSize: '11px',
+                fontFamily: 'var(--font-mono, monospace)',
+                color: '#555148',
+                fontWeight: 600,
+                background: 'rgba(251, 249, 245, 0.85)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1px solid #DCD7CD',
+                padding: '4px 14px',
+                borderRadius: '9999px',
+                boxShadow: '0 2px 6px rgba(28, 27, 24, 0.04)',
               }}
             >
-              <div
-                style={{
-                  padding: '3px 8px',
-                  borderRadius: '3px',
-                  background: '#FBF9F5',
-                  border: '1px solid #DCD7CD',
-                  color: '#1C1B18',
-                }}
-              >
-                <span style={{ color: '#8C887F' }}>IN:</span> <strong>{hudStats.incoming}</strong>
-              </div>
-              <div
-                style={{
-                  padding: '3px 8px',
-                  borderRadius: '3px',
-                  background: '#F9ECEA',
-                  border: '1px solid #E8C4BE',
-                  color: '#A83B2B',
-                }}
-              >
-                <span>FILTERED:</span> <strong>{hudStats.shieldedPct}</strong>
-              </div>
-              <span style={{ color: '#8C887F', fontSize: '10.5px' }} className="hidden sm:inline">
-                Click sky to drop test traffic
-              </span>
+              <Server size={12} color="#C68A2C" />
+              <span>Origin Server</span>
+              <span style={{ color: '#C68A2C', fontWeight: 700 }}>● 100% Shielded</span>
             </div>
           </div>
         </div>
