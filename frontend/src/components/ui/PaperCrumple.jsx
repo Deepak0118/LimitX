@@ -857,13 +857,19 @@ const PaperCrumple = forwardRef(({
         posX.target = clamp(posX.value + speedX * coast, -limitX, limitX);
         posY.target = clamp(posY.value - speedY * coast, -limitY, limitY);
 
-        if (amount.value > 0.45 && !hasDiscarded) {
-          const dist = Math.hypot(posX.value, posY.value);
-          const speed = Math.hypot(speedX, speedY);
-          if (dist > 150 || speed > 360) {
-            hasDiscarded = true;
+        if (!hasDiscarded) {
+          hasDiscarded = true;
+          const tossX = Math.abs(speedX) > 60 ? (speedX > 0 ? 380 : -380) : 380;
+          const tossY = Math.abs(speedY) > 60 ? (speedY < 0 ? -260 : 260) : -260;
+          amount.target = clamp(finite(opts.crumpleAmount, 0.88), 0, 1);
+          posX.target = tossX;
+          posY.target = tossY;
+          tiltX.target = 0.6;
+          tiltY.target = -0.6;
+          wake();
+          setTimeout(() => {
             options.current.onDiscard?.();
-          }
+          }, 300);
         }
       }
 
@@ -898,17 +904,23 @@ const PaperCrumple = forwardRef(({
       wake();
     }
 
-    function toss(tx = 260, ty = -160) {
+    function toss(tx = 380, ty = -260) {
       held = false;
       hit.setAttribute('aria-pressed', 'false');
       hit.dataset.held = 'false';
-      amount.target = clamp(finite(options.current.crumpleAmount, 0.85), 0, 1);
+      amount.target = clamp(finite(options.current.crumpleAmount, 0.88), 0, 1);
       posX.target = tx;
       posY.target = ty;
-      tiltX.target = 0.4;
-      tiltY.target = -0.4;
+      tiltX.target = 0.6;
+      tiltY.target = -0.6;
       publish('crumpled');
       wake();
+      if (!hasDiscarded) {
+        hasDiscarded = true;
+        setTimeout(() => {
+          options.current.onDiscard?.();
+        }, 320);
+      }
     }
 
     startRef.current = start;
