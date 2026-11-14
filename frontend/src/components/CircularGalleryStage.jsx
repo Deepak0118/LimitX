@@ -440,7 +440,7 @@ export default function CircularGalleryStage() {
                 borderColor={card.accent ? `${card.accent}66` : 'rgba(198, 138, 44, 0.35)'}
               >
                 {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div
                       style={{
@@ -460,23 +460,6 @@ export default function CircularGalleryStage() {
                       {card.num} / {card.category}
                     </span>
                   </div>
-
-                  {(isFront || (!isExpanded && index === 0)) && (
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '9px',
-                        fontWeight: 600,
-                        color: '#C68A2C',
-                        background: 'rgba(198, 138, 44, 0.1)',
-                        padding: '2px 7px',
-                        borderRadius: '2px',
-                        border: '1px solid rgba(198, 138, 44, 0.3)',
-                      }}
-                    >
-                      {isExpanded ? 'ACTIVE' : 'DECK'}
-                    </span>
-                  )}
                 </div>
 
                 <h3 style={{ margin: '0 0 8px', fontSize: '15.5px', fontWeight: 600, color: '#1C1B18', lineHeight: 1.28, letterSpacing: '-0.015em' }}>
