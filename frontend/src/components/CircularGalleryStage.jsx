@@ -1,104 +1,105 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  SlidersHorizontal,
-  ShieldAlert,
+  ShieldCheck,
   DollarSign,
+  Lock,
+  EyeOff,
+  Users,
   Activity,
-  Zap,
-  Code2,
-  Clock,
   PowerOff,
+  Zap,
+  Check,
 } from 'lucide-react';
 import SpotlightCard from './ui/SpotlightCard';
 
 const CARDS_DATA = [
   {
-    id: 'routes',
+    id: 'uptime',
     num: '01',
-    category: 'ROUTE CAPS',
-    title: 'Per-Route Enforcer',
-    desc: 'Distinct rate limits for sensitive routes like auth, search, or LLM completions.',
-    icon: SlidersHorizontal,
+    category: 'RELIABILITY',
+    title: 'Prevent Traffic Crashes',
+    desc: 'When marketing campaigns or viral spikes hit your product, excess traffic is absorbed at the edge so your origin server never crashes.',
+    icon: ShieldCheck,
     accent: '#C68A2C',
-    metric: '5 REQ/M',
-    tag: 'CUSTOM LIMITS',
-  },
-  {
-    id: 'ip-jail',
-    num: '02',
-    category: 'BOT DEFENSE',
-    title: 'Autonomous IP Jail',
-    desc: 'Drop scrapers and credential stuffing bots with immediate 403 responses.',
-    icon: ShieldAlert,
-    accent: '#E5484D',
-    metric: '6,148+',
-    tag: 'RADAR ARMED',
+    outcomeLabel: 'Uptime Guarantee',
+    outcomeValue: 'Zero Server Overload',
   },
   {
     id: 'billing',
-    num: '03',
-    category: 'COST SHIELD',
-    title: 'Zero Surge Billing',
-    desc: 'Eliminate runaway cloud hosting bills caused by looping scripts or scrapers.',
+    num: '02',
+    category: 'COST PROTECTION',
+    title: 'Eliminate Surprise Cloud Bills',
+    desc: 'Put a hard ceiling on abusive loops and bot floods before they run up thousands of dollars in cloud infrastructure and third-party API bills.',
     icon: DollarSign,
-    accent: '#2D8A4E',
-    metric: '$1,371',
-    tag: 'SAVED / MO',
+    accent: '#C68A2C',
+    outcomeLabel: 'Billing Safety',
+    outcomeValue: 'Zero Bill Shock',
   },
   {
-    id: 'telemetry',
+    id: 'auth',
+    num: '03',
+    category: 'SECURITY',
+    title: 'Stop Account Takeovers',
+    desc: 'Protect customer login and signup endpoints against automated credential stuffing, password spraying, and brute-force attacks.',
+    icon: Lock,
+    accent: '#C68A2C',
+    outcomeLabel: 'Account Defense',
+    outcomeValue: 'Bruteforce Blocked',
+  },
+  {
+    id: 'scraping',
     num: '04',
-    category: 'OBSERVABILITY',
-    title: 'Realtime Edge Audit',
-    desc: 'Inspect every proxied request live with method, IP, status, and edge latency.',
-    icon: Activity,
-    accent: '#3B82F6',
-    metric: '0.34ms',
-    tag: 'SUB-MS AUDIT',
+    category: 'DATA PRIVACY',
+    title: 'Block Unwanted Web Scrapers',
+    desc: 'Keep competitors and AI scraping bots from stealing your content, proprietary pricing data, and database records without permission.',
+    icon: EyeOff,
+    accent: '#C68A2C',
+    outcomeLabel: 'Content Protection',
+    outcomeValue: 'Zero Data Theft',
   },
   {
-    id: 'swap',
+    id: 'fairness',
     num: '05',
-    category: 'HOT-SWAP',
-    title: '1-Minute URL Swap',
-    desc: 'Point client API_BASE_URL to proxy URL. Zero code rewrites or SDK imports.',
-    icon: Code2,
-    accent: '#8B5CF6',
-    metric: '60 SEC',
-    tag: 'NO SDKS',
+    category: 'FAIR ACCESS',
+    title: 'Protect Customer Experience',
+    desc: 'Ensure no single aggressive user or buggy script degrades the application speed for everyone else by enforcing fair per-user limits.',
+    icon: Users,
+    accent: '#C68A2C',
+    outcomeLabel: 'Quality of Service',
+    outcomeValue: 'Equal Performance',
   },
   {
-    id: 'token-bucket',
+    id: 'visibility',
     num: '06',
-    category: 'BURST SHIELD',
-    title: 'Token Bucket Core',
-    desc: 'Smoothly absorbs natural traffic bursts while refilling at a steady rate.',
-    icon: Zap,
-    accent: '#F5A623',
-    metric: '10 TOKENS',
-    tag: 'BURST SAFE',
-  },
-  {
-    id: 'sliding-log',
-    num: '07',
-    category: 'ACCURACY',
-    title: 'Sliding Log Window',
-    desc: 'Thwarts boundary exploits by weighing a rolling 60-second frame.',
-    icon: Clock,
-    accent: '#10B981',
-    metric: '100%',
-    tag: 'SPIKE GUARD',
+    category: 'OBSERVABILITY',
+    title: 'Live Traffic Transparency',
+    desc: 'See exactly who is calling your APIs in real time, which endpoints are hot, and understand immediately why any request was throttled.',
+    icon: Activity,
+    accent: '#C68A2C',
+    outcomeLabel: 'Audit Visibility',
+    outcomeValue: 'Real-Time Telemetry',
   },
   {
     id: 'killswitch',
-    num: '08',
-    category: 'CONTROL',
-    title: '1-Click Kill Switch',
-    desc: 'Instantly freeze and resume proxy routes during outages or migrations.',
+    num: '07',
+    category: 'INCIDENT CONTROL',
+    title: 'Emergency 1-Click Pause',
+    desc: 'When third-party APIs fail or your backend needs maintenance, instantly pause or throttle specific routes without deploying emergency code.',
     icon: PowerOff,
-    accent: '#EF4444',
-    metric: 'PAUSE',
-    tag: 'HOT TOGGLE',
+    accent: '#C68A2C',
+    outcomeLabel: 'Incident Response',
+    outcomeValue: 'Instant Route Freeze',
+  },
+  {
+    id: 'maintenance',
+    num: '08',
+    category: 'ZERO OVERHEAD',
+    title: 'No Infrastructure to Manage',
+    desc: 'Forget configuring Redis clusters, maintaining microservice gateways, or writing custom middleware. Set your rules once and focus on your app.',
+    icon: Zap,
+    accent: '#C68A2C',
+    outcomeLabel: 'Maintenance Cost',
+    outcomeValue: '0 Redis Servers',
   },
 ];
 
@@ -439,13 +440,13 @@ export default function CircularGalleryStage() {
                 borderColor={card.accent ? `${card.accent}66` : 'rgba(198, 138, 44, 0.35)'}
               >
                 {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div
                       style={{
                         width: '28px',
                         height: '28px',
-                        borderRadius: '2px',
+                        borderRadius: '3px',
                         background: '#22211E',
                         color: '#FAF8F5',
                         display: 'flex',
@@ -455,7 +456,7 @@ export default function CircularGalleryStage() {
                     >
                       <IconComponent size={14} strokeWidth={1.8} />
                     </div>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#8C887F', fontWeight: 600 }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#8C887F', fontWeight: 600, letterSpacing: '0.04em' }}>
                       {card.num} / {card.category}
                     </span>
                   </div>
@@ -466,11 +467,11 @@ export default function CircularGalleryStage() {
                         fontFamily: 'var(--font-mono)',
                         fontSize: '9px',
                         fontWeight: 600,
-                        color: '#2D8A4E',
-                        background: '#E8F5E9',
-                        padding: '2px 6px',
+                        color: '#C68A2C',
+                        background: 'rgba(198, 138, 44, 0.1)',
+                        padding: '2px 7px',
                         borderRadius: '2px',
-                        border: '1px solid #C8E6C9',
+                        border: '1px solid rgba(198, 138, 44, 0.3)',
                       }}
                     >
                       {isExpanded ? 'ACTIVE' : 'DECK'}
@@ -478,40 +479,34 @@ export default function CircularGalleryStage() {
                   )}
                 </div>
 
-                <h3 style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 600, color: '#1C1B18', lineHeight: 1.25 }}>
+                <h3 style={{ margin: '0 0 8px', fontSize: '15.5px', fontWeight: 600, color: '#1C1B18', lineHeight: 1.28, letterSpacing: '-0.015em' }}>
                   {card.title}
                 </h3>
 
-                <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#4A4843', lineHeight: 1.45 }}>
+                <p style={{ margin: '0 0 16px', fontSize: '12.5px', color: '#4A4843', lineHeight: 1.5 }}>
                   {card.desc}
                 </p>
 
-                {/* Bottom Metric Pill */}
-                <div style={{ marginTop: 'auto' }}>
-                  <div
-                    style={{
-                      background: isFront || (!isExpanded && index === 0) ? '#22211E' : '#EAE6DD',
-                      color: isFront || (!isExpanded && index === 0) ? '#FAF8F5' : '#1C1B18',
-                      padding: '8px 10px',
-                      borderRadius: '2px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: '8.5px', fontFamily: 'var(--font-mono)', color: isFront || (!isExpanded && index === 0) ? '#A5A096' : '#7A756D' }}>
-                        {card.tag}
-                      </div>
-                      <div style={{ fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-mono)', color: isFront || (!isExpanded && index === 0) ? '#72F1B8' : '#1C1B18' }}>
-                        {card.metric}
-                      </div>
-                    </div>
-
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: isFront || (!isExpanded && index === 0) ? '#F5A623' : '#8C887F' }}>
-                      LIMITX
-                    </span>
-                  </div>
+                {/* Clean Professional Outcome Footer (User Benefit) */}
+                <div
+                  style={{
+                    marginTop: 'auto',
+                    paddingTop: '11px',
+                    borderTop: '1px solid #EAE6DD',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: '11px',
+                    fontFamily: 'var(--font-mono)',
+                  }}
+                >
+                  <span style={{ color: '#8C887F', fontWeight: 500 }}>
+                    {card.outcomeLabel}
+                  </span>
+                  <span style={{ color: '#1C1B18', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Check size={11} color="#C68A2C" strokeWidth={2.5} />
+                    {card.outcomeValue}
+                  </span>
                 </div>
               </SpotlightCard>
             </div>
