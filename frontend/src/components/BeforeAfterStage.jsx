@@ -451,7 +451,7 @@ export default function BeforeAfterStage() {
 
             {/* Action Button */}
             <div>
-              {!isDiscarded ? (
+              {!isDiscarded && (
                 <button
                   type="button"
                   onClick={handleCrumpleAndThrow}
@@ -482,32 +482,6 @@ export default function BeforeAfterStage() {
                 >
                   <Trash2 size={13} />
                   <span>Unpin &amp; Crumple Sheet ↗</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  style={{
-                    padding: '8px 16px',
-                    background: '#FAF8F5',
-                    color: '#1C1B18',
-                    border: '1px solid #C68A2C',
-                    borderRadius: '6px',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '7px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-                    transition: 'all 160ms ease',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = '#EAE6DD')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = '#FAF8F5')}
-                >
-                  <RotateCcw size={13} color="#C68A2C" />
-                  <span>Re-Pin Legacy Architecture</span>
                 </button>
               )}
             </div>
@@ -728,7 +702,7 @@ export default function BeforeAfterStage() {
                     }}
                   >
                     <ShieldCheck size={12} />
-                    <span>PRODUCTION SPEC · APPROVED &amp; CERTIFIED</span>
+                    <span>PRODUCTION SPEC · ACTIVE PROXY CONFIG</span>
                   </span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#C68A2C', fontWeight: 600 }}>
                     REVERSE PROXY PERIMETER
@@ -736,7 +710,7 @@ export default function BeforeAfterStage() {
                 </div>
 
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#2D8A4E', fontWeight: 600, paddingRight: '24px' }}>
-                  ● 100% SHIELDED
+                  ● PROXY PROTECTED
                 </span>
               </div>
 

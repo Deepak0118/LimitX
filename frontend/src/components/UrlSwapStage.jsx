@@ -227,7 +227,7 @@ export default function UrlSwapStage() {
               >
                 {[
                   { step: '01', title: 'Client App', sub: 'Calls /proxy/:apiId/*' },
-                  { step: '02', title: 'LimitX Edge Gateway', sub: 'In-memory rate check (<0.4ms)' },
+                  { step: '02', title: 'LimitX Edge Gateway', sub: 'Low-latency in-memory rate check' },
                   { step: '03', title: 'Your Origin Server', sub: 'Receives verified traffic only' },
                 ].map((node, i) => (
                   <div

@@ -145,7 +145,7 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
           p.vy = 4.6 + Math.random() * 1.5;
         }
       }
-      showToast('⚡ Injected burst wave — 100% of excess requests filtered at Ozone Shield');
+      showToast('⚡ Burst wave simulated — excess requests rate-limited with 429 Too Many Requests');
     },
     [spawnPacket, showToast],
   );
@@ -817,7 +817,7 @@ export default function HeroPrecisionStage({ onOpenSetup }) {
               letterSpacing: '-0.012em',
             }}
           >
-            Stop traffic spikes and abusive bursts before they reach your origin.
+            Stop traffic spikes and abusive bursts before they reach your backend.
           </p>
 
           {/* Attractive High-Contrast Action CTAs */}

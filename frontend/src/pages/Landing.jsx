@@ -214,7 +214,7 @@ export default function Landing() {
                 Protect your server, your users, and your bill.
               </h2>
               <p style={{ margin: 0, fontSize: '15.5px', color: '#4A4843', maxWidth: '540px', lineHeight: 1.6 }}>
-                Four layers of edge defense to keep your origin fast, your database shielded, and your billing predictable.
+                Edge-level rate limiting to keep your origin fast, your database shielded, and your cloud bills predictable.
               </p>
             </div>
 
