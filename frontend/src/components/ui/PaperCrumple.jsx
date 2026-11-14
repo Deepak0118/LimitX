@@ -281,6 +281,7 @@ const PaperCrumple = forwardRef(({
   disabled = false,
   resetKey = 0,
   onStateChange,
+  onDiscard,
   onError,
   className = '',
   style
@@ -307,6 +308,7 @@ const PaperCrumple = forwardRef(({
     returnToOrigin,
     disabled,
     onStateChange,
+    onDiscard,
     onError
   });
   options.current = {
@@ -321,6 +323,7 @@ const PaperCrumple = forwardRef(({
     returnToOrigin,
     disabled,
     onStateChange,
+    onDiscard,
     onError
   };
 
@@ -586,7 +589,8 @@ const PaperCrumple = forwardRef(({
       contextLost = false;
     let frame = 0,
       lastTime = 0,
-      state = 'flat';
+      state = 'flat',
+      hasDiscarded = false;
     const textures = new Set();
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     let reduceMotion = media.matches;
@@ -750,6 +754,15 @@ const PaperCrumple = forwardRef(({
         floor.position.z = backZ - scale * shortSide * 0.08;
       }
 
+      if (amount.value > 0.45 && !hasDiscarded) {
+        const edgeMarginX = Math.max(30, (viewportWidth / 2) - 45);
+        const edgeMarginY = Math.max(30, (viewportHeight / 2) - 45);
+        if (Math.abs(posX.value) >= edgeMarginX || Math.abs(posY.value) >= edgeMarginY) {
+          hasDiscarded = true;
+          options.current.onDiscard?.();
+        }
+      }
+
       renderer.render(scene, camera);
       placeHitTarget();
       if (moving) wake();
@@ -843,6 +856,15 @@ const PaperCrumple = forwardRef(({
         const coast = !reduceMotion && !keyboard && performance.now() - lastMove < 90 ? 0.06 : 0;
         posX.target = clamp(posX.value + speedX * coast, -limitX, limitX);
         posY.target = clamp(posY.value - speedY * coast, -limitY, limitY);
+
+        if (amount.value > 0.45 && !hasDiscarded) {
+          const dist = Math.hypot(posX.value, posY.value);
+          const speed = Math.hypot(speedX, speedY);
+          if (dist > 150 || speed > 360) {
+            hasDiscarded = true;
+            options.current.onDiscard?.();
+          }
+        }
       }
 
       if (instant || keyboard || reduceMotion) for (const s of springs) advance(s, 0, 0, true);
@@ -858,6 +880,7 @@ const PaperCrumple = forwardRef(({
     }
 
     function reset() {
+      hasDiscarded = false;
       finish(true);
       for (const s of springs) s.target = s.value = s.velocity = 0;
       peak = 0;

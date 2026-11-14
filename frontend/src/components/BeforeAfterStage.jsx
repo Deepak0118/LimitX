@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Hand,
   Trash2,
+  Wind,
 } from 'lucide-react';
 import PaperCrumple from './ui/PaperCrumple';
 
@@ -136,6 +137,8 @@ export default function BeforeAfterStage() {
   const paperRef = useRef(null);
   const [textureUrl, setTextureUrl] = useState('');
   const [isCrumpled, setIsCrumpled] = useState(false);
+  const [isDiscarded, setIsDiscarded] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   const [resetKey, setResetKey] = useState(0);
 
   useEffect(() => {
@@ -143,23 +146,35 @@ export default function BeforeAfterStage() {
     setTextureUrl(url);
   }, []);
 
-  // Action: Programmatic Crumple & Toss to the side
-  const handleCrumpleAndToss = () => {
+  // Action: Programmatic Crumple & Fling towards edge
+  const handleCrumpleAndThrow = () => {
     if (!paperRef.current) return;
     setIsCrumpled(true);
-    paperRef.current.toss(250, -140);
+    // Toss towards the top-right edge with high velocity
+    paperRef.current.toss(360, -260);
   };
 
-  // Action: Reset paper back to flat over the card
+  // Called when the paper ball touches any edge or is flung off
+  const handleDiscard = () => {
+    setIsExiting(true);
+    setTimeout(() => {
+      setIsDiscarded(true);
+      setIsExiting(false);
+    }, 320);
+  };
+
+  // Action: Reset back to the Without LimitX paper sheet
   const handleReset = () => {
+    setIsDiscarded(false);
     setIsCrumpled(false);
+    setIsExiting(false);
     setResetKey((k) => k + 1);
     if (paperRef.current) {
       paperRef.current.reset();
     }
   };
 
-  // Callback from direct user drag & crumple
+  // State change from direct user drag
   const handleStateChange = (state) => {
     if (state === 'crumpled' || state === 'holding') {
       setIsCrumpled(true);
@@ -168,318 +183,372 @@ export default function BeforeAfterStage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Top Controller Bar */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px',
-          background: '#FAF8F5',
-          border: '1px solid #DCD7CD',
-          borderRadius: '3px',
-          padding: '12px 18px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Hand size={15} color="#C68A2C" />
-          <div style={{ fontSize: '13px', color: '#1C1B18' }}>
-            <strong>Interactive 3D Stage:</strong> Click and drag the legacy paper to crumple it, then throw it anywhere to reveal LimitX.
-          </div>
-        </div>
+      {/* CSS Keyframes for Smooth Reveal & Toss Out */}
+      <style>{`
+        @keyframes revealWithLimitX {
+          0% {
+            opacity: 0;
+            transform: translateY(28px) scale(0.97);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        @keyframes tossPaperOut {
+          0% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: scale(0.3) translate(280px, -200px);
+          }
+        }
+      `}</style>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {!isCrumpled ? (
-            <button
-              type="button"
-              onClick={handleCrumpleAndToss}
-              style={{
-                padding: '7px 14px',
-                background: '#1C1B18',
-                color: '#FAF8F5',
-                border: 'none',
-                borderRadius: '2px',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '11.5px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'background 150ms ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = '#C68A2C')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = '#1C1B18')}
-            >
-              <Trash2 size={13} />
-              <span>Crumple &amp; Fling to Side ↗</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleReset}
-              style={{
-                padding: '7px 14px',
-                background: '#FAF8F5',
-                color: '#1C1B18',
-                border: '1px solid #DCD7CD',
-                borderRadius: '2px',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '11.5px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-              }}
-            >
-              <RotateCcw size={13} color="#C68A2C" />
-              <span>Reset / Unfold Paper</span>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* =====================================================================
-          MAIN DUAL-LAYER STAGE
-          Base: "With LimitX" Card (Always present underneath!)
-          Top: 3D PaperCrumple (Crumples into ball, freely draggable anywhere!)
-          ===================================================================== */}
+      {/* Main Interactive Stage Box */}
       <div
         style={{
           position: 'relative',
-          minHeight: '560px',
+          minHeight: '580px',
           borderRadius: '4px',
-          border: isCrumpled ? '1px solid #C68A2C' : '1px solid #DCD7CD',
-          boxShadow: isCrumpled
-            ? '0 6px 28px rgba(198, 138, 44, 0.12)'
+          border: isDiscarded ? '1px solid #C68A2C' : '1px solid #DCD7CD',
+          boxShadow: isDiscarded
+            ? '0 8px 32px rgba(198, 138, 44, 0.12)'
             : '0 4px 20px rgba(28, 27, 24, 0.05)',
           background: '#FAF8F5',
           overflow: 'hidden',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          transition: 'border 300ms ease, box-shadow 300ms ease',
+          transition: 'border 350ms ease, box-shadow 350ms ease',
+          padding: '24px',
         }}
       >
         {/* ===================================================================
-            LAYER 1 (BASE): "WITH LIMITX" SHIELDED ARCHITECTURE CARD
+            VIEW 1 (INITIAL): WITHOUT LIMITX 3D CRUMPLABLE PAPER
+            "With LimitX" is NOT visible until the paper is crumpled and thrown away!
             =================================================================== */}
-        <div
-          style={{
-            width: '100%',
-            maxWidth: '860px',
-            padding: '36px 32px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '20px',
-            zIndex: 1,
-            opacity: isCrumpled ? 1 : 0.85,
-            transition: 'opacity 300ms ease',
-          }}
-        >
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span
+        {!isDiscarded ? (
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              animation: isExiting ? 'tossPaperOut 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards' : 'none',
+            }}
+          >
+            {/* Guide Bar Insisting User to Crumple and Throw */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                maxWidth: '720px',
+                marginBottom: '16px',
+                flexWrap: 'wrap',
+                gap: '12px',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: '#C64835',
+                      background: '#F9ECEA',
+                      border: '1px solid #E8C4BE',
+                      padding: '2px 8px',
+                      borderRadius: '2px',
+                    }}
+                  >
+                    STEP 1: DISCARD OBSOLETE ARCHITECTURE
+                  </span>
+                  <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#1C1B18' }}>
+                    Without LimitX: Direct Origin Exposure
+                  </span>
+                </div>
+                <div style={{ fontSize: '12.5px', color: '#6E6B64', marginTop: '3px', lineHeight: 1.4 }}>
+                  {!isCrumpled ? (
+                    <span>
+                      <strong style={{ color: '#C64835' }}>Click &amp; hold</strong> to crumple this paper into a ball, then <strong>throw it towards any edge</strong> to reveal LimitX!
+                    </span>
+                  ) : (
+                    <span style={{ color: '#2D8A4E', fontWeight: 600 }}>
+                      Now drag or fling the paper ball towards any edge to discard it!
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCrumpleAndThrow}
                 style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  letterSpacing: '0.06em',
-                  color: '#2D8A4E',
-                  background: '#E8F5E9',
-                  border: '1px solid #CBE8D5',
-                  padding: '3px 8px',
+                  padding: '9px 16px',
+                  background: '#1C1B18',
+                  color: '#FAF8F5',
+                  border: 'none',
                   borderRadius: '2px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '5px',
+                  gap: '6px',
+                  boxShadow: '0 2px 8px rgba(28, 27, 24, 0.1)',
+                  transition: 'background 150ms ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#C64835')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = '#1C1B18')}
+              >
+                <Trash2 size={13} />
+                <span>Crumple &amp; Throw Off-Screen ↗</span>
+              </button>
+            </div>
+
+            {/* 3D Paper Crumple Canvas */}
+            {textureUrl && (
+              <div style={{ position: 'relative', width: '100%', maxWidth: '640px' }}>
+                <PaperCrumple
+                  ref={paperRef}
+                  src={textureUrl}
+                  alt="Without LimitX Architecture Sheet"
+                  width={380}
+                  height={470}
+                  sceneHeight={520}
+                  paperColor="#FAF7F0"
+                  releaseBehavior="stay"
+                  crumpleAmount={0.88}
+                  crumpleDuration={0.55}
+                  releaseDuration={0.4}
+                  draggable={true}
+                  dragRadius={800} // Large radius lets user drag freely all over the screen
+                  returnToOrigin={false} // Stays wherever the user drags/throws it
+                  dragRotation={25}
+                  resetKey={resetKey}
+                  onStateChange={handleStateChange}
+                  onDiscard={handleDiscard}
+                />
+              </div>
+            )}
+          </div>
+        ) : (
+          /* ===================================================================
+              VIEW 2: "WITH LIMITX" RISES UP INTO VIEW!
+              Revealed ONLY after the legacy paper is crumpled and thrown away!
+              =================================================================== */
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '840px',
+              animation: 'revealWithLimitX 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '24px',
+              padding: '12px 10px',
+            }}
+          >
+            {/* Emerged Header with Replay Button */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+                paddingBottom: '18px',
+                borderBottom: '1px solid #DCD7CD',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: '#2D8A4E',
+                      background: '#E8F5E9',
+                      border: '1px solid #CBE8D5',
+                      padding: '3px 8px',
+                      borderRadius: '2px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <ShieldCheck size={12} />
+                    <span>AUTONOMOUS EDGE SHIELDED</span>
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#C68A2C', fontWeight: 600 }}>
+                    WITH LIMITX ACTIVE
+                  </span>
+                </div>
+                <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 600, color: '#1C1B18', letterSpacing: '-0.02em' }}>
+                  Shielded Reverse Proxy Architecture
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleReset}
+                style={{
+                  padding: '8px 14px',
+                  background: '#F5F2EB',
+                  border: '1px solid #DCD7CD',
+                  borderRadius: '2px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#4A4843',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                  transition: 'background 150ms ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#EAE6DD')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = '#F5F2EB')}
+              >
+                <RotateCcw size={13} color="#C68A2C" />
+                <span>Replay / Bring Back Paper</span>
+              </button>
+            </div>
+
+            <p style={{ margin: 0, fontSize: '14.5px', color: '#5F5C55', lineHeight: 1.6 }}>
+              The legacy direct exposure was discarded. Your application backend now sits protected behind the LimitX reverse proxy gateway. Incoming requests are evaluated at the edge against configured rate rules (Token Bucket, Fixed Window, Sliding Log) before ever reaching origin threads.
+            </p>
+
+            {/* 4 Pillars of LimitX */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                gap: '14px',
+              }}
+            >
+              <div
+                style={{
+                  background: '#F5F2EB',
+                  border: '1px solid #DCD7CD',
+                  borderRadius: '2px',
+                  padding: '16px',
                 }}
               >
-                <ShieldCheck size={12} />
-                <span>WITH LIMITX ACTIVE</span>
-              </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#C68A2C', fontWeight: 600 }}>
-                REVERSE PROXY PERIMETER
-              </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                  <Check size={14} color="#2D8A4E" strokeWidth={2.5} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#7A756D', fontWeight: 600 }}>
+                    EDGE PERIMETER
+                  </span>
+                </div>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: '#1C1B18' }}>
+                  Protected Origin Host
+                </div>
+                <div style={{ fontSize: '12.5px', color: '#6E6B64', marginTop: '4px', lineHeight: 1.45 }}>
+                  Traffic routes through the reverse proxy. Origin server IP and ports stay protected.
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: '#F5F2EB',
+                  border: '1px solid #DCD7CD',
+                  borderRadius: '2px',
+                  padding: '16px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                  <Check size={14} color="#2D8A4E" strokeWidth={2.5} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#7A756D', fontWeight: 600 }}>
+                    BURST BUFFERING
+                  </span>
+                </div>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: '#1C1B18' }}>
+                  Algorithmic Rate Limiting
+                </div>
+                <div style={{ fontSize: '12.5px', color: '#6E6B64', marginTop: '4px', lineHeight: 1.45 }}>
+                  Token Bucket, Fixed Window, and Sliding Log smoothly absorb spikes at the edge.
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: '#F5F2EB',
+                  border: '1px solid #DCD7CD',
+                  borderRadius: '2px',
+                  padding: '16px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                  <Check size={14} color="#2D8A4E" strokeWidth={2.5} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#7A756D', fontWeight: 600 }}>
+                    IETF STANDARDS
+                  </span>
+                </div>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: '#1C1B18' }}>
+                  Standard Rate Headers
+                </div>
+                <div style={{ fontSize: '12.5px', color: '#6E6B64', marginTop: '4px', lineHeight: 1.45 }}>
+                  Injects standard <code style={{ fontFamily: 'var(--font-mono)', color: '#C68A2C' }}>X-RateLimit-Limit</code>, <code style={{ fontFamily: 'var(--font-mono)', color: '#C68A2C' }}>Remaining</code>, and <code style={{ fontFamily: 'var(--font-mono)', color: '#C68A2C' }}>Reset</code>.
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: '#F5F2EB',
+                  border: '1px solid #DCD7CD',
+                  borderRadius: '2px',
+                  padding: '16px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                  <Check size={14} color="#2D8A4E" strokeWidth={2.5} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#7A756D', fontWeight: 600 }}>
+                    1-URL SWAP
+                  </span>
+                </div>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: '#1C1B18' }}>
+                  Zero Code Changes
+                </div>
+                <div style={{ fontSize: '12.5px', color: '#6E6B64', marginTop: '4px', lineHeight: 1.45 }}>
+                  Deploy in 60s by replacing your client base URL. Zero code refactoring required.
+                </div>
+              </div>
             </div>
 
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#2D8A4E', fontWeight: 600 }}>
-              ● ORIGIN SHIELDED
-            </span>
-          </div>
-
-          <div>
-            <h3 style={{ margin: '0 0 6px', fontSize: '22px', fontWeight: 600, color: '#1C1B18', letterSpacing: '-0.02em' }}>
-              Shielded Reverse Proxy Architecture
-            </h3>
-            <p style={{ margin: 0, fontSize: '14px', color: '#5F5C55', lineHeight: 1.55 }}>
-              Your application backend sits protected behind the LimitX reverse proxy. Every incoming request is evaluated against configured rate limits (Token Bucket, Fixed Window, Sliding Log) at the edge before ever reaching backend threads.
-            </p>
-          </div>
-
-          {/* 4 Pillars Grid */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: '12px',
-            }}
-          >
+            {/* Wire Response Snippet */}
             <div
               style={{
                 background: '#F5F2EB',
                 border: '1px solid #DCD7CD',
-                borderRadius: '2px',
-                padding: '14px',
+                borderRadius: '3px',
+                padding: '14px 18px',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                <Check size={13} color="#2D8A4E" strokeWidth={2.5} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#7A756D', fontWeight: 600 }}>
-                  EDGE PERIMETER
-                </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#7A756D', fontSize: '10.5px', marginBottom: '6px' }}>
+                <span>LIMITX PROXIED RESPONSE WIRE</span>
+                <span style={{ color: '#2D8A4E', fontWeight: 600 }}>TELEMETRY ACTIVE</span>
               </div>
-              <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#1C1B18' }}>
-                Protected Origin Host
-              </div>
-              <div style={{ fontSize: '12px', color: '#6E6B64', marginTop: '2px', lineHeight: 1.45 }}>
-                Traffic routes through the proxy. Origin IP and ports remain completely hidden.
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: '#F5F2EB',
-                border: '1px solid #DCD7CD',
-                borderRadius: '2px',
-                padding: '14px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                <Check size={13} color="#2D8A4E" strokeWidth={2.5} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#7A756D', fontWeight: 600 }}>
-                  BURST BUFFERING
-                </span>
-              </div>
-              <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#1C1B18' }}>
-                Algorithmic Throttling
-              </div>
-              <div style={{ fontSize: '12px', color: '#6E6B64', marginTop: '2px', lineHeight: 1.45 }}>
-                Token Bucket, Fixed Window, and Sliding Log smoothly absorb spikes at the edge.
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: '#F5F2EB',
-                border: '1px solid #DCD7CD',
-                borderRadius: '2px',
-                padding: '14px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                <Check size={13} color="#2D8A4E" strokeWidth={2.5} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#7A756D', fontWeight: 600 }}>
-                  CLIENT TELEMETRY
-                </span>
-              </div>
-              <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#1C1B18' }}>
-                Standard IETF Headers
-              </div>
-              <div style={{ fontSize: '12px', color: '#6E6B64', marginTop: '2px', lineHeight: 1.45 }}>
-                Injects <code style={{ fontFamily: 'var(--font-mono)', color: '#C68A2C' }}>X-RateLimit-Limit</code>, <code style={{ fontFamily: 'var(--font-mono)', color: '#C68A2C' }}>Remaining</code>, and <code style={{ fontFamily: 'var(--font-mono)', color: '#C68A2C' }}>Reset</code>.
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: '#F5F2EB',
-                border: '1px solid #DCD7CD',
-                borderRadius: '2px',
-                padding: '14px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                <Check size={13} color="#2D8A4E" strokeWidth={2.5} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#7A756D', fontWeight: 600 }}>
-                  DEPLOYMENT
-                </span>
-              </div>
-              <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#1C1B18' }}>
-                Zero Code Changes
-              </div>
-              <div style={{ fontSize: '12px', color: '#6E6B64', marginTop: '2px', lineHeight: 1.45 }}>
-                Connects via 1-URL proxy swap (<code style={{ fontFamily: 'var(--font-mono)' }}>API_BASE_URL</code>). Zero SDK refactoring.
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', color: '#1C1B18' }}>
+                <div><span style={{ color: '#7A756D' }}>HTTP/1.1</span> 200 OK (or 429 Too Many Requests)</div>
+                <div><span style={{ color: '#C68A2C' }}>X-RateLimit-Limit:</span> 60</div>
+                <div><span style={{ color: '#C68A2C' }}>X-RateLimit-Remaining:</span> 48</div>
+                <div><span style={{ color: '#C68A2C' }}>X-RateLimit-Reset:</span> 1718902800</div>
+                <div style={{ color: '#2D8A4E', marginTop: '2px' }}>// Evaluated at proxy gateway before passing to origin</div>
               </div>
             </div>
           </div>
-
-          {/* Wire Response Snippet */}
-          <div
-            style={{
-              background: '#F5F2EB',
-              border: '1px solid #DCD7CD',
-              borderRadius: '2px',
-              padding: '12px 16px',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '11.5px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#7A756D', fontSize: '10.5px', marginBottom: '6px' }}>
-              <span>LIMITX PROXIED RESPONSE WIRE</span>
-              <span style={{ color: '#2D8A4E', fontWeight: 600 }}>TELEMETRY ACTIVE</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', color: '#1C1B18' }}>
-              <div><span style={{ color: '#7A756D' }}>HTTP/1.1</span> 200 OK (or 429 Too Many Requests)</div>
-              <div><span style={{ color: '#C68A2C' }}>X-RateLimit-Limit:</span> 60</div>
-              <div><span style={{ color: '#C68A2C' }}>X-RateLimit-Remaining:</span> 48</div>
-              <div><span style={{ color: '#C68A2C' }}>X-RateLimit-Reset:</span> 1718902800</div>
-              <div style={{ color: '#2D8A4E', marginTop: '3px' }}>// Evaluated at proxy gateway before passing to origin</div>
-            </div>
-          </div>
-        </div>
-
-        {/* ===================================================================
-            LAYER 2 (TOP): 3D "WITHOUT LIMITX" PAPER CRUMPLE
-            Allows free dragging anywhere, stays crumpled, does NOT vanish!
-            =================================================================== */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            pointerEvents: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10,
-          }}
-        >
-          {textureUrl && (
-            <PaperCrumple
-              ref={paperRef}
-              src={textureUrl}
-              alt="Without LimitX Architecture Sheet"
-              width={380}
-              height={470}
-              sceneHeight={560}
-              paperColor="#FAF7F0"
-              releaseBehavior="stay"
-              crumpleAmount={0.88}
-              crumpleDuration={0.55}
-              releaseDuration={0.4}
-              draggable={true}
-              dragRadius={800} // Large radius allows throwing to any corner of the screen!
-              returnToOrigin={false} // Stays wherever the user throws/drops it!
-              dragRotation={25}
-              resetKey={resetKey}
-              onStateChange={handleStateChange}
-            />
-          )}
-        </div>
+        )}
       </div>
 
       {/* 3 Outcome Verification Pills */}
