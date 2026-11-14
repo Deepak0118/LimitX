@@ -1,14 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import {
-  ShieldCheck,
-  Check,
-  RotateCcw,
-  Sparkles,
-  ArrowRight,
-  Hand,
-  Trash2,
-  Paperclip,
-} from 'lucide-react';
+import { ShieldCheck, Check } from 'lucide-react';
 import PaperCrumple from './ui/PaperCrumple';
 
 /**
@@ -229,26 +220,9 @@ export default function BeforeAfterStage() {
     setTextureUrl(url);
   }, []);
 
-  // Action: Crumple and Toss off the meeting board
-  const handleCrumpleAndThrow = () => {
-    if (!paperRef.current) return;
-    setIsCrumpled(true);
-    paperRef.current.toss(380, -260);
-  };
-
   // Called when the paper ball finishes crumpling & leaves the board
   const handleDiscard = () => {
     setIsDiscarded(true);
-  };
-
-  // Action: Re-attach the legacy paper back to the board
-  const handleReset = () => {
-    setIsDiscarded(false);
-    setIsCrumpled(false);
-    setResetKey((k) => k + 1);
-    if (paperRef.current) {
-      paperRef.current.reset();
-    }
   };
 
   // State change from direct user drag
@@ -447,43 +421,6 @@ export default function BeforeAfterStage() {
             >
               <div style={{ width: '84px', height: '2px', background: 'rgba(255, 255, 255, 0.6)' }} />
               <div style={{ position: 'absolute', bottom: '3px', width: '70px', height: '1.5px', background: 'rgba(0, 0, 0, 0.3)' }} />
-            </div>
-
-            {/* Action Button */}
-            <div>
-              {!isDiscarded && (
-                <button
-                  type="button"
-                  onClick={handleCrumpleAndThrow}
-                  style={{
-                    padding: '8px 16px',
-                    background: '#1C1B18',
-                    color: '#FAF8F5',
-                    border: '1px solid #C68A2C',
-                    borderRadius: '6px',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '7px',
-                    boxShadow: '0 4px 12px rgba(28, 27, 24, 0.2)',
-                    transition: 'all 160ms ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#C68A2C';
-                    e.currentTarget.style.color = '#1C1B18';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '#1C1B18';
-                    e.currentTarget.style.color = '#FAF8F5';
-                  }}
-                >
-                  <Trash2 size={13} />
-                  <span>Unpin &amp; Crumple Sheet ↗</span>
-                </button>
-              )}
             </div>
           </div>
 
